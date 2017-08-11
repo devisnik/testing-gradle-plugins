@@ -43,7 +43,8 @@
 <li><a href="#the_sample_project">1. The sample project</a></li>
 <li><a href="#manual_verification_and_debugging">2. Manual verification and debugging</a>
 <ul class="sectlevel2">
-<li><a href="#using_composite_builds">2.1. Using composite builds</a></li>
+<li><a href="#rapid_development_for_plugins">2.1. Rapid development for plugins</a></li>
+<li><a href="#debugging_from_the_ide">2.2. Debugging from the IDE</a></li>
 </ul>
 </li>
 <li><a href="#defining_and_implementing_appropriate_tests_types">3. Defining and implementing appropriate tests types</a>
@@ -95,14 +96,46 @@
 <div class="sect1">
 <h2 id="the_sample_project"><a class="anchor" href="#the_sample_project"></a>1. The sample project</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>All discussions around testing in this guide are based on a sample project called URL verifier plugin. You can inspect and download the <a href="https://github.com/gradle-guides/testing-gradle-plugins/tree/master/samples/code/url-verifier-plugin">source code of the plugin</a> in the corresponding GitHub repository. The plugin creates a task named <code>verifyUrl</code> that checks whether a given URL can be resolved via HTTP GET. The URL can be provided through an extension named <code>verification</code> in the consuming build script.</p>
+</div>
+<div class="paragraph">
+<p>The following build script demonstrates how a consuming build script could look like.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy">apply <span class="key">plugin</span>: <span class="string"><span class="delimiter">'</span><span class="content">org.gradle.sample.urlverifier</span><span class="delimiter">'</span></span>
 
+verification {
+    url = <span class="string"><span class="delimiter">'</span><span class="content">http://www.google.com/</span><span class="delimiter">'</span></span>
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Executing the command <code>gradle verifyUrl</code> would render a success message in case the URL can be resolved.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="shell">Parallel execution is an incubating feature.
+
+&gt; Task :verifyUrl
+Successfully resolved URL 'http://www.google.com/'
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following sections will discuss how to effectively debug and test the plugin from different angles.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="manual_verification_and_debugging"><a class="anchor" href="#manual_verification_and_debugging"></a>2. Manual verification and debugging</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="using_composite_builds"><a class="anchor" href="#using_composite_builds"></a>2.1. Using composite builds</h3>
+<h3 id="rapid_development_for_plugins"><a class="anchor" href="#rapid_development_for_plugins"></a>2.1. Rapid development for plugins</h3>
 <div class="paragraph">
 <p>One way to test a plugin in a consuming project is to publish the plugin JAR file to a local repository and point the project it. Granted this technique is cumbersome - every change to the plugin code requires the developer to publish a new artifact.</p>
 </div>
@@ -156,6 +189,10 @@
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="debugging_from_the_ide"><a class="anchor" href="#debugging_from_the_ide"></a>2.2. Debugging from the IDE</h3>
+
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -190,23 +227,23 @@
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Source directory holding functional tests</td>
+<td>Source directory containing functional tests</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Source directory holding integration tests</td>
+<td>Source directory containing integration tests</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Source directory holding production source code</td>
+<td>Source directory containing production source code</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Source directory holding production resource files</td>
+<td>Source directory containing production resource files</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>
-<td>Source directory holding unit tests</td>
+<td>Source directory containing unit tests</td>
 </tr>
 </table>
 </div>
@@ -635,7 +672,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-08-11 20:17:18 +00:00
+Last updated 2017-08-11 20:56:43 +00:00
 </div>
 </div>
 </body>

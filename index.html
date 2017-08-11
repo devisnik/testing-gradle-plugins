@@ -5,8 +5,8 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.3">
-<meta name="author" content="EDIT build.gradle TO ADD AUTHOR">
-<title>testing-gradle-plugins</title>
+<meta name="author" content="Benjamin Muschko">
+<title>Testing Gradle plugins</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="./coderay-asciidoctor.css">
 <link rel="stylesheet" href="https://guides.gradle.org/css/asciidoctor.css">
@@ -33,16 +33,27 @@
 </script>
 </head>
 <body class="article toc2 toc-right">
-<div id="header"><div style="padding-top: 10px;"><a href="https://guides.gradle.org"><img src="https://guides.gradle.org/gradle-guides.svg" alt=""></a></div><h1>testing-gradle-plugins</h1>
+<div id="header"><div style="padding-top: 10px;"><a href="https://guides.gradle.org"><img src="https://guides.gradle.org/gradle-guides.svg" alt=""></a></div><h1>Testing Gradle plugins</h1>
 <div class="details">
-<span id="author" class="author">EDIT build.gradle TO ADD AUTHOR</span><br>
+<span id="author" class="author">Benjamin Muschko</span><br>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#content_tbc">1. CONTENT_TBC</a></li>
-<li><a href="#summary">2. Summary</a></li>
-<li><a href="#help_improve_this_guide">3. Help improve this guide</a></li>
+<li><a href="#manual_verification_and_debugging">1. Manual verification and debugging</a>
+<ul class="sectlevel2">
+<li><a href="#using_composite_builds">1.1. Using composite builds</a></li>
+</ul>
+</li>
+<li><a href="#implementing_tests_types">2. Implementing tests types</a>
+<ul class="sectlevel2">
+<li><a href="#writing_and_executing_unit_tests">2.1. Writing and executing unit tests</a></li>
+<li><a href="#writing_and_executing_integration_tests">2.2. Writing and executing integration tests</a></li>
+<li><a href="#implementing_functional_tests">2.3. Implementing functional tests</a></li>
+</ul>
+</li>
+<li><a href="#summary">3. Summary</a></li>
+<li><a href="#next_steps">4. Next steps</a></li>
 </ul>
 </div>
 </div>
@@ -50,38 +61,93 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><strong>INTRO_TBC</strong></p>
+<p>With practice writing Gradle plugins comes easy especially with the knowledge of the <a href="https://guides.gradle.org/implementing-gradle-plugins/">implementing Gradle plugins</a> guide under your belt. Part of every development process is testing whether that’s in a manual or automated fashion. The same is true for Gradle plugin code. Before letting any consumer use a plugin its functionality should be verified on different levels. In this guide you will learn how to debug plugin code during development. You will also getting to know the techniques used to write and execute different types of tests.</p>
+</div>
+<div class="paragraph">
+<p>This guide assumes you have:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Basic understanding of software engineering practices</p>
+</li>
+<li>
+<p>Knowledge of Gradle plugin implementation techniques</p>
+</li>
+<li>
+<p>Working knowledge in writing Java code</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you happen to be a beginner to Gradle please start by working through the Getting Started Guides on Gradle development first while referencing the Gradle User Manual to go deeper.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="content_tbc"><a class="anchor" href="#content_tbc"></a>1. CONTENT_TBC</h2>
+<h2 id="manual_verification_and_debugging"><a class="anchor" href="#manual_verification_and_debugging"></a>1. Manual verification and debugging</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="using_composite_builds"><a class="anchor" href="#using_composite_builds"></a>1.1. Using composite builds</h3>
 <div class="paragraph">
-<p><strong>TBC</strong></p>
+<p>One way to test a plugin in a consuming project is to publish the plugin JAR file to a local repository and point the project it. Granted this technique is cumbersome - every change to the plugin code requires the developer to publish a new artifact.</p>
+</div>
+<div class="paragraph">
+<p>With the introduction of the composite builds feature, plugin developers have a more powerful mechanism at their disposal. The standalone plugin project and the project consuming the plugin can be combined together into a single unit.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy"></code></pre>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="summary"><a class="anchor" href="#summary"></a>2. Summary</h2>
+<h2 id="implementing_tests_types"><a class="anchor" href="#implementing_tests_types"></a>2. Implementing tests types</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="writing_and_executing_unit_tests"><a class="anchor" href="#writing_and_executing_unit_tests"></a>2.1. Writing and executing unit tests</h3>
+
+</div>
+<div class="sect2">
+<h3 id="writing_and_executing_integration_tests"><a class="anchor" href="#writing_and_executing_integration_tests"></a>2.2. Writing and executing integration tests</h3>
+
+</div>
+<div class="sect2">
+<h3 id="implementing_functional_tests"><a class="anchor" href="#implementing_functional_tests"></a>2.3. Implementing functional tests</h3>
+
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>3. Summary</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><strong>TBC</strong></p>
+<p>Please let us know on the <a href="https://discuss.gradle.org/">Gradle forum</a> if you are still having difficulties understanding any of the covered testing strategies. Which one works the best for your plugin? Let us know!</p>
+</div>
+<div class="paragraph">
+<p>Wrote an awesome plugin? Write a tweet to <a href="https://twitter.com/gradle">@gradle</a> with the link to the documentation or code.</p>
 </div>
 </div>
 </div>
-<div class="sect1 contribute">
-<h2 id="help_improve_this_guide"><a class="anchor" href="#help_improve_this_guide"></a>3. Help improve this guide</h2>
+<div class="sect1">
+<h2 id="next_steps"><a class="anchor" href="#next_steps"></a>4. Next steps</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Have feedback or a question? Found a typo? Like all Gradle guides, help is just a GitHub issue away. Please add an issue or pull request to <a href="https://github.com/gradle-guides/testing-gradle-plugins/">gradle-guides/testing-gradle-plugins</a> and we&#8217;ll get back to you.</p>
+<p>Testing Gradle plugins builds upon best practices and development strategies. You may be interested in:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://guides.gradle.org/designing-gradle-plugins/">Designing Gradle plugins</a>
+<a href="https://guides.gradle.org/implementing-gradle-plugins/">Implementing Gradle plugins</a></p>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-08-11 17:29:50 +00:00
+Last updated 2017-08-11 17:38:50 +00:00
 </div>
 </div>
 </body>

@@ -40,27 +40,28 @@
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#manual_verification_and_debugging">1. Manual verification and debugging</a>
+<li><a href="#the_sample_project">1. The sample project</a></li>
+<li><a href="#manual_verification_and_debugging">2. Manual verification and debugging</a>
 <ul class="sectlevel2">
-<li><a href="#using_composite_builds">1.1. Using composite builds</a></li>
+<li><a href="#using_composite_builds">2.1. Using composite builds</a></li>
 </ul>
 </li>
-<li><a href="#defining_and_implementing_appropriate_tests_types">2. Defining and implementing appropriate tests types</a>
+<li><a href="#defining_and_implementing_appropriate_tests_types">3. Defining and implementing appropriate tests types</a>
 <ul class="sectlevel2">
-<li><a href="#the_testing_pyramid">2.1. The testing pyramid</a></li>
-<li><a href="#setting_up_dedicated_source_sets">2.2. Setting up dedicated source sets</a></li>
-<li><a href="#tooling_for_every_test_type">2.3. Tooling for every test type</a></li>
+<li><a href="#the_testing_pyramid">3.1. The testing pyramid</a></li>
+<li><a href="#setting_up_dedicated_source_sets">3.2. Setting up dedicated source sets</a></li>
+<li><a href="#tooling_support_for_every_test_type">3.3. Tooling support for every test type</a></li>
 </ul>
 </li>
-<li><a href="#implementing_tests">3. Implementing tests</a>
+<li><a href="#implementing_tests">4. Implementing tests</a>
 <ul class="sectlevel2">
-<li><a href="#unit-tests">3.1. Unit tests</a></li>
-<li><a href="#integration-tests">3.2. Integration tests</a></li>
-<li><a href="#functional-tests">3.3. Functional tests</a></li>
+<li><a href="#unit-tests">4.1. Unit tests</a></li>
+<li><a href="#integration-tests">4.2. Integration tests</a></li>
+<li><a href="#functional-tests">4.3. Functional tests</a></li>
 </ul>
 </li>
-<li><a href="#summary">4. Summary</a></li>
-<li><a href="#next_steps">5. Next steps</a></li>
+<li><a href="#summary">5. Summary</a></li>
+<li><a href="#next_steps">6. Next steps</a></li>
 </ul>
 </div>
 </div>
@@ -92,48 +93,122 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="manual_verification_and_debugging"><a class="anchor" href="#manual_verification_and_debugging"></a>1. Manual verification and debugging</h2>
+<h2 id="the_sample_project"><a class="anchor" href="#the_sample_project"></a>1. The sample project</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="manual_verification_and_debugging"><a class="anchor" href="#manual_verification_and_debugging"></a>2. Manual verification and debugging</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="using_composite_builds"><a class="anchor" href="#using_composite_builds"></a>1.1. Using composite builds</h3>
+<h3 id="using_composite_builds"><a class="anchor" href="#using_composite_builds"></a>2.1. Using composite builds</h3>
 <div class="paragraph">
 <p>One way to test a plugin in a consuming project is to publish the plugin JAR file to a local repository and point the project it. Granted this technique is cumbersome - every change to the plugin code requires the developer to publish a new artifact.</p>
 </div>
 <div class="paragraph">
-<p>With the introduction of the composite builds feature, plugin developers have a more powerful mechanism at their disposal. The standalone plugin project and the project consuming the plugin can be combined together into a single unit.</p>
+<p>With the introduction of the <a href="https://docs.gradle.org/4.1/userguide/composite_builds.html">composite builds</a> feature, plugin developers have a more powerful mechanism at their disposal. The standalone plugin project and the project consuming the plugin can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of publishing.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.gradle</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="groovy"></code></pre>
+<pre>.
+├── include-plugin-build   <i class="conum" data-value="1"></i><b>(1)</b>
+│   ├── build.gradle
+│   └── settings.gradle
+└── url-verifier-plugin    <i class="conum" data-value="2"></i><b>(2)</b>
+    ├── build.gradle
+    ├── settings.gradle
+    └── src</pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Consuming project that includes the plugin project</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The plugin project</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>There are two ways to include a plugin project into a consuming project.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>By using the command line option <code>--include-build</code>.</p>
+</li>
+<li>
+<p>By using the method <code>includeBuild</code> in <code>settings.gradle</code>.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The following code snippet demonstrates the use of the settings file.</p>
+</div>
+<div class="listingblock">
+<div class="title">settings.gradle</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy">includeBuild <span class="string"><span class="delimiter">'</span><span class="content">../url-verifier-plugin</span><span class="delimiter">'</span></span></code></pre>
 </div>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="defining_and_implementing_appropriate_tests_types"><a class="anchor" href="#defining_and_implementing_appropriate_tests_types"></a>2. Defining and implementing appropriate tests types</h2>
+<h2 id="defining_and_implementing_appropriate_tests_types"><a class="anchor" href="#defining_and_implementing_appropriate_tests_types"></a>3. Defining and implementing appropriate tests types</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="the_testing_pyramid"><a class="anchor" href="#the_testing_pyramid"></a>2.1. The testing pyramid</h3>
-
+<h3 id="the_testing_pyramid"><a class="anchor" href="#the_testing_pyramid"></a>3.1. The testing pyramid</h3>
+<div class="imageblock" style="text-align: center">
+<div class="content">
+<img src="images/testing-pyramid.png" alt="testing pyramid">
+</div>
+</div>
 </div>
 <div class="sect2">
-<h3 id="setting_up_dedicated_source_sets"><a class="anchor" href="#setting_up_dedicated_source_sets"></a>2.2. Setting up dedicated source sets</h3>
+<h3 id="setting_up_dedicated_source_sets"><a class="anchor" href="#setting_up_dedicated_source_sets"></a>3.2. Setting up dedicated source sets</h3>
 <div class="listingblock">
 <div class="content">
 <pre>.
 └── src
     ├── functTest
-    │   └── groovy      &lt;= Functional tests
+    │   └── groovy      <i class="conum" data-value="1"></i><b>(1)</b>
     ├── integTest
-    │   └── groovy      &lt;= Integration tests
+    │   └── groovy      <i class="conum" data-value="2"></i><b>(2)</b>
     ├── main
-    │   ├── java        &lt;= Production source code
-    │   └── resources   &lt;= Production resource files
+    │   ├── java        <i class="conum" data-value="3"></i><b>(3)</b>
+    │   └── resources   <i class="conum" data-value="4"></i><b>(4)</b>
     └── test
-        └── groovy      &lt;= Unit tests</pre>
+        └── groovy      <i class="conum" data-value="5"></i><b>(5)</b></pre>
 </div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Source directory holding functional tests</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Source directory holding integration tests</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Source directory holding production source code</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Source directory holding production resource files</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Source directory holding unit tests</td>
+</tr>
+</table>
 </div>
 <div class="listingblock">
 <div class="title">integration-test.gradle</div>
@@ -165,7 +240,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="tooling_for_every_test_type"><a class="anchor" href="#tooling_for_every_test_type"></a>2.3. Tooling for every test type</h3>
+<h3 id="tooling_support_for_every_test_type"><a class="anchor" href="#tooling_support_for_every_test_type"></a>3.3. Tooling support for every test type</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 20%;">
@@ -174,7 +249,7 @@ check.dependsOn integrationTest</code></pre>
 <thead>
 <tr>
 <th class="tableblock halign-left valign-top">Test type</th>
-<th class="tableblock halign-left valign-top">Tooling</th>
+<th class="tableblock halign-left valign-top">Tooling support</th>
 </tr>
 </thead>
 <tbody>
@@ -184,11 +259,11 @@ check.dependsOn integrationTest</code></pre>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#integration-tests">Integration tests</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and Gradle&#8217;s <code>ProjectBuilder</code> API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and <a href="https://docs.gradle.org/4.1/javadoc/org/gradle/testfixtures/ProjectBuilder.html">Gradle&#8217;s ProjectBuilder API</a></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#functional-tests">Functional tests</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and Gradle TestKit</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and <a href="https://docs.gradle.org/4.1/userguide/test_kit.html">Gradle TestKit</a></p></td>
 </tr>
 </tbody>
 </table>
@@ -196,10 +271,10 @@ check.dependsOn integrationTest</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="implementing_tests"><a class="anchor" href="#implementing_tests"></a>3. Implementing tests</h2>
+<h2 id="implementing_tests"><a class="anchor" href="#implementing_tests"></a>4. Implementing tests</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="unit-tests"><a class="anchor" href="#unit-tests"></a>3.1. Unit tests</h3>
+<h3 id="unit-tests"><a class="anchor" href="#unit-tests"></a>4.1. Unit tests</h3>
 <div class="listingblock">
 <div class="title">HttpResponse.java</div>
 <div class="content">
@@ -262,7 +337,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="integration-tests"><a class="anchor" href="#integration-tests"></a>3.2. Integration tests</h3>
+<h3 id="integration-tests"><a class="anchor" href="#integration-tests"></a>4.2. Integration tests</h3>
 <div class="listingblock">
 <div class="title">DefaultHttpCaller.java</div>
 <div class="content">
@@ -451,7 +526,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="functional-tests"><a class="anchor" href="#functional-tests"></a>3.3. Functional tests</h3>
+<h3 id="functional-tests"><a class="anchor" href="#functional-tests"></a>4.3. Functional tests</h3>
 <div class="listingblock">
 <div class="title">UrlVerifierPlugin.java</div>
 <div class="content">
@@ -529,7 +604,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="summary"><a class="anchor" href="#summary"></a>4. Summary</h2>
+<h2 id="summary"><a class="anchor" href="#summary"></a>5. Summary</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Please let us know on the <a href="https://discuss.gradle.org/">Gradle forum</a> if you are still having difficulties understanding any of the covered testing strategies. Which one works the best for your plugin? Let us know!</p>
@@ -540,7 +615,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="next_steps"><a class="anchor" href="#next_steps"></a>5. Next steps</h2>
+<h2 id="next_steps"><a class="anchor" href="#next_steps"></a>6. Next steps</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Testing Gradle plugins builds upon best practices and development strategies. You may be interested in:</p>
@@ -560,7 +635,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-08-11 18:47:10 +00:00
+Last updated 2017-08-11 20:17:18 +00:00
 </div>
 </div>
 </body>

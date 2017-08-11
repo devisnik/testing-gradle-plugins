@@ -45,15 +45,22 @@
 <li><a href="#using_composite_builds">1.1. Using composite builds</a></li>
 </ul>
 </li>
-<li><a href="#implementing_tests_types">2. Implementing tests types</a>
+<li><a href="#defining_and_implementing_appropriate_tests_types">2. Defining and implementing appropriate tests types</a>
 <ul class="sectlevel2">
-<li><a href="#writing_and_executing_unit_tests">2.1. Writing and executing unit tests</a></li>
-<li><a href="#writing_and_executing_integration_tests">2.2. Writing and executing integration tests</a></li>
-<li><a href="#implementing_functional_tests">2.3. Implementing functional tests</a></li>
+<li><a href="#the_testing_pyramid">2.1. The testing pyramid</a></li>
+<li><a href="#setting_up_dedicated_source_sets">2.2. Setting up dedicated source sets</a></li>
+<li><a href="#tooling_for_every_test_type">2.3. Tooling for every test type</a></li>
 </ul>
 </li>
-<li><a href="#summary">3. Summary</a></li>
-<li><a href="#next_steps">4. Next steps</a></li>
+<li><a href="#implementing_tests">3. Implementing tests</a>
+<ul class="sectlevel2">
+<li><a href="#unit-tests">3.1. Unit tests</a></li>
+<li><a href="#integration-tests">3.2. Integration tests</a></li>
+<li><a href="#functional-tests">3.3. Functional tests</a></li>
+</ul>
+</li>
+<li><a href="#summary">4. Summary</a></li>
+<li><a href="#next_steps">5. Next steps</a></li>
 </ul>
 </div>
 </div>
@@ -61,7 +68,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>With practice writing Gradle plugins comes easy especially with the knowledge of the <a href="https://guides.gradle.org/implementing-gradle-plugins/">implementing Gradle plugins</a> guide under your belt. Part of every development process is testing whether that’s in a manual or automated fashion. The same is true for Gradle plugin code. Before letting any consumer use a plugin its functionality should be verified on different levels. In this guide you will learn how to debug plugin code during development. You will also getting to know the techniques used to write and execute different types of tests.</p>
+<p>With practice writing Gradle plugins comes easy especially with the knowledge of the <a href="https://guides.gradle.org/implementing-gradle-plugins/">Implementing Gradle plugins</a> guide under your belt. Part of every development process is testing whether that’s in a manual or automated fashion. The same is true for Gradle plugin code. Before letting any consumer use a plugin its functionality should be verified on different levels. In this guide you will learn how to debug plugin code during development. You will also getting to know the techniques used to write and execute different types of tests.</p>
 </div>
 <div class="paragraph">
 <p>This guide assumes you have:</p>
@@ -80,7 +87,7 @@
 </ul>
 </div>
 <div class="paragraph">
-<p>If you happen to be a beginner to Gradle please start by working through the Getting Started Guides on Gradle development first while referencing the Gradle User Manual to go deeper.</p>
+<p>If you happen to be a beginner to Gradle please start by working through the <a href="https://gradle.org/guides#getting-started">Getting Started Guides on Gradle development</a> first while referencing the <a href="https://docs.gradle.org/4.1/userguide/userguide.html">Gradle User Manual</a> to go deeper.</p>
 </div>
 </div>
 </div>
@@ -105,24 +112,424 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="implementing_tests_types"><a class="anchor" href="#implementing_tests_types"></a>2. Implementing tests types</h2>
+<h2 id="defining_and_implementing_appropriate_tests_types"><a class="anchor" href="#defining_and_implementing_appropriate_tests_types"></a>2. Defining and implementing appropriate tests types</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="writing_and_executing_unit_tests"><a class="anchor" href="#writing_and_executing_unit_tests"></a>2.1. Writing and executing unit tests</h3>
+<h3 id="the_testing_pyramid"><a class="anchor" href="#the_testing_pyramid"></a>2.1. The testing pyramid</h3>
 
 </div>
 <div class="sect2">
-<h3 id="writing_and_executing_integration_tests"><a class="anchor" href="#writing_and_executing_integration_tests"></a>2.2. Writing and executing integration tests</h3>
+<h3 id="setting_up_dedicated_source_sets"><a class="anchor" href="#setting_up_dedicated_source_sets"></a>2.2. Setting up dedicated source sets</h3>
+<div class="listingblock">
+<div class="content">
+<pre>.
+└── src
+    ├── functTest
+    │   └── groovy      &lt;= Functional tests
+    ├── integTest
+    │   └── groovy      &lt;= Integration tests
+    ├── main
+    │   ├── java        &lt;= Production source code
+    │   └── resources   &lt;= Production resource files
+    └── test
+        └── groovy      &lt;= Unit tests</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">integration-test.gradle</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy">sourceSets {
+    integrationTest {
+        groovy.srcDir file(<span class="string"><span class="delimiter">'</span><span class="content">src/integTest/groovy</span><span class="delimiter">'</span></span>)
+        resources.srcDir file(<span class="string"><span class="delimiter">'</span><span class="content">src/integTest/resources</span><span class="delimiter">'</span></span>)
+        compileClasspath += sourceSets.main.output + configurations.testRuntime
+        runtimeClasspath += output + compileClasspath
+    }
+}
 
+task integrationTest(<span class="key">type</span>: Test) {
+    description = <span class="string"><span class="delimiter">'</span><span class="content">Runs the integration tests.</span><span class="delimiter">'</span></span>
+    group = <span class="string"><span class="delimiter">'</span><span class="content">verification</span><span class="delimiter">'</span></span>
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    mustRunAfter test
+
+    reports {
+        html.destination = project.file(<span class="string"><span class="delimiter">&quot;</span><span class="inline"><span class="inline-delimiter">$</span>html</span><span class="content">.destination/integration</span><span class="delimiter">&quot;</span></span>)
+        junitXml.destination = project.file(<span class="string"><span class="delimiter">&quot;</span><span class="inline"><span class="inline-delimiter">$</span>junitXml</span><span class="content">.destination/integration</span><span class="delimiter">&quot;</span></span>)
+    }
+}
+
+check.dependsOn integrationTest</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
-<h3 id="implementing_functional_tests"><a class="anchor" href="#implementing_functional_tests"></a>2.3. Implementing functional tests</h3>
-
+<h3 id="tooling_for_every_test_type"><a class="anchor" href="#tooling_for_every_test_type"></a>2.3. Tooling for every test type</h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Test type</th>
+<th class="tableblock halign-left valign-top">Tooling</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#unit-tests">Unit tests</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#integration-tests">Integration tests</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and Gradle&#8217;s <code>ProjectBuilder</code> API</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#functional-tests">Functional tests</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and Gradle TestKit</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="summary"><a class="anchor" href="#summary"></a>3. Summary</h2>
+<h2 id="implementing_tests"><a class="anchor" href="#implementing_tests"></a>3. Implementing tests</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="unit-tests"><a class="anchor" href="#unit-tests"></a>3.1. Unit tests</h3>
+<div class="listingblock">
+<div class="title">HttpResponse.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.gradle.sample.http</span>;
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">HttpResponse</span> {
+    <span class="directive">private</span> <span class="predefined-type">String</span> message;
+    <span class="directive">private</span> <span class="type">int</span> code;
+
+    <span class="directive">public</span> HttpResponse(<span class="type">int</span> code, <span class="predefined-type">String</span> message) {
+        <span class="local-variable">this</span>.code = code;
+        <span class="local-variable">this</span>.message = message;
+    }
+
+    <span class="directive">public</span> <span class="type">int</span> getCode() {
+        <span class="keyword">return</span> code;
+    }
+
+    <span class="directive">public</span> <span class="predefined-type">String</span> getMessage() {
+        <span class="keyword">return</span> message;
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="predefined-type">String</span> toString() {
+        <span class="keyword">return</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">HTTP </span><span class="delimiter">&quot;</span></span> + code + <span class="string"><span class="delimiter">&quot;</span><span class="content">, Reason: </span><span class="delimiter">&quot;</span></span> + message;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">HttpResponseTest.groovy</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy"><span class="keyword">package</span> org.gradle.sample.http
+
+<span class="keyword">import</span> <span class="include">spock.lang.Specification</span>
+
+<span class="type">class</span> <span class="class">HttpResponseTest</span> <span class="directive">extends</span> Specification {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="type">int</span> OK_HTTP_CODE = <span class="integer">200</span>
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">String</span> OK_HTTP_MESSAGE = <span class="string"><span class="delimiter">'</span><span class="content">OK</span><span class="delimiter">'</span></span>
+
+    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">can access information</span><span class="delimiter">&quot;</span></span>() {
+        <span class="key">when</span>:
+        <span class="keyword">def</span> httpResponse = <span class="keyword">new</span> HttpResponse(OK_HTTP_CODE, OK_HTTP_MESSAGE)
+
+        <span class="key">then</span>:
+        httpResponse.code == OK_HTTP_CODE
+        httpResponse.message == OK_HTTP_MESSAGE
+    }
+
+    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">can get String representation</span><span class="delimiter">&quot;</span></span>() {
+        <span class="key">when</span>:
+        <span class="keyword">def</span> httpResponse = <span class="keyword">new</span> HttpResponse(OK_HTTP_CODE, OK_HTTP_MESSAGE)
+
+        <span class="key">then</span>:
+        httpResponse.toString() == <span class="string"><span class="delimiter">&quot;</span><span class="content">HTTP </span><span class="inline"><span class="inline-delimiter">$</span>OK_HTTP_CODE</span><span class="content">, Reason: </span><span class="inline"><span class="inline-delimiter">$</span>OK_HTTP_MESSAGE</span><span class="delimiter">&quot;</span></span>
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="integration-tests"><a class="anchor" href="#integration-tests"></a>3.2. Integration tests</h3>
+<div class="listingblock">
+<div class="title">DefaultHttpCaller.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.gradle.sample.http</span>;
+
+<span class="keyword">import</span> <span class="include">java.io.IOException</span>;
+<span class="keyword">import</span> <span class="include">java.net.HttpURLConnection</span>;
+<span class="keyword">import</span> <span class="include">java.net.URL</span>;
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">DefaultHttpCaller</span> <span class="directive">implements</span> HttpCaller {
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> HttpResponse get(<span class="predefined-type">String</span> url) {
+        <span class="keyword">try</span> {
+            <span class="predefined-type">HttpURLConnection</span> connection = (<span class="predefined-type">HttpURLConnection</span>) <span class="keyword">new</span> <span class="predefined-type">URL</span>(url).openConnection();
+            connection.setConnectTimeout(<span class="integer">5000</span>);
+            connection.setRequestMethod(<span class="string"><span class="delimiter">&quot;</span><span class="content">GET</span><span class="delimiter">&quot;</span></span>);
+            connection.connect();
+
+            <span class="type">int</span> code = connection.getResponseCode();
+            <span class="predefined-type">String</span> message = connection.getResponseMessage();
+            <span class="keyword">return</span> <span class="keyword">new</span> HttpResponse(code, message);
+        } <span class="keyword">catch</span> (<span class="exception">IOException</span> e) {
+            <span class="keyword">throw</span> <span class="keyword">new</span> HttpCallException(<span class="predefined-type">String</span>.format(<span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to call URL '%s' via HTTP GET</span><span class="delimiter">&quot;</span></span>, url), e);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">DefaultHttpCallerIntegrationTest.groovy</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy"><span class="keyword">package</span> org.gradle.sample.http
+
+<span class="keyword">import</span> <span class="include">spock.lang.Specification</span>
+<span class="keyword">import</span> <span class="include">spock.lang.Subject</span>
+
+<span class="type">class</span> <span class="class">DefaultHttpCallerIntegrationTest</span> <span class="directive">extends</span> Specification {
+    <span class="annotation">@Subject</span> HttpCaller httpCaller = <span class="keyword">new</span> DefaultHttpCaller()
+
+    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">can make successful HTTP GET call</span><span class="delimiter">&quot;</span></span>() {
+        <span class="key">when</span>:
+        <span class="keyword">def</span> httpResponse = httpCaller.get(<span class="string"><span class="delimiter">'</span><span class="content">http://www.google.com/</span><span class="delimiter">'</span></span>)
+
+        <span class="key">then</span>:
+        httpResponse.code == <span class="integer">200</span>
+        httpResponse.message == <span class="string"><span class="delimiter">'</span><span class="content">OK</span><span class="delimiter">'</span></span>
+    }
+
+    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">throws exception when calling unknown host via HTTP GET</span><span class="delimiter">&quot;</span></span>() {
+        <span class="key">when</span>:
+        httpCaller.get(<span class="string"><span class="delimiter">'</span><span class="content">http://www.wedonotknowyou123.com/</span><span class="delimiter">'</span></span>)
+
+        <span class="key">then</span>:
+        <span class="keyword">def</span> t = thrown(HttpCallException)
+        t.message == <span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to call URL 'http://www.wedonotknowyou123.com/' via HTTP GET</span><span class="delimiter">&quot;</span></span>
+        t.cause <span class="keyword">instanceof</span> <span class="exception">UnknownHostException</span>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">UrlVerify.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.gradle.sample.tasks</span>;
+
+<span class="keyword">import</span> <span class="include">org.gradle.api.DefaultTask</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.api.GradleException</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.api.provider.PropertyState</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.api.provider.Provider</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.api.tasks.Input</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.api.tasks.TaskAction</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.sample.http.DefaultHttpCaller</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpCallException</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpCaller</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpResponse</span>;
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">UrlVerify</span> <span class="directive">extends</span> DefaultTask {
+    <span class="directive">private</span> HttpCaller httpCaller = <span class="keyword">new</span> DefaultHttpCaller();
+    <span class="directive">private</span> <span class="directive">final</span> PropertyState&lt;<span class="predefined-type">String</span>&gt; url;
+
+    <span class="directive">public</span> UrlVerify() {
+        <span class="local-variable">this</span>.url = getProject().property(<span class="predefined-type">String</span>.class);
+    }
+
+    <span class="directive">public</span> <span class="type">void</span> setUrl(<span class="predefined-type">String</span> url) {
+        <span class="local-variable">this</span>.url.set(url);
+    }
+
+    <span class="directive">public</span> <span class="type">void</span> setUrl(<span class="predefined-type">Provider</span>&lt;<span class="predefined-type">String</span>&gt; url) {
+        <span class="local-variable">this</span>.url.set(url);
+    }
+
+    <span class="annotation">@Input</span>
+    <span class="directive">public</span> <span class="predefined-type">String</span> getUrl() {
+        <span class="keyword">return</span> url.get();
+    }
+
+    <span class="annotation">@TaskAction</span>
+    <span class="directive">public</span> <span class="type">void</span> verify() {
+        <span class="keyword">try</span> {
+            HttpResponse httpResponse = httpCaller.get(getUrl());
+
+            <span class="keyword">if</span> (httpResponse.getCode() != <span class="integer">200</span>) {
+                <span class="keyword">throw</span> <span class="keyword">new</span> GradleException(<span class="predefined-type">String</span>.format(<span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to resolve url '%s' (%s)</span><span class="delimiter">&quot;</span></span>, getUrl(), httpResponse.toString()));
+            }
+        } <span class="keyword">catch</span> (HttpCallException e) {
+            <span class="keyword">throw</span> <span class="keyword">new</span> GradleException(<span class="predefined-type">String</span>.format(<span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to resolve url '%s'</span><span class="delimiter">&quot;</span></span>, getUrl(), e));
+        }
+
+        getLogger().quiet(<span class="predefined-type">String</span>.format(<span class="string"><span class="delimiter">&quot;</span><span class="content">Successfully resolved URL '%s'</span><span class="delimiter">&quot;</span></span>, getUrl()));
+    }
+
+    <span class="type">void</span> setHttpCaller(HttpCaller httpCaller) {
+        <span class="local-variable">this</span>.httpCaller = httpCaller;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">integration-test.gradle</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
+    integrationTestCompile gradleApi()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">UrlVerifyIntegrationTest.groovy</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy"><span class="keyword">package</span> org.gradle.sample.tasks
+
+<span class="keyword">import</span> <span class="include">org.gradle.api.GradleException</span>
+<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpCallException</span>
+<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpCaller</span>
+<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpResponse</span>
+<span class="keyword">import</span> <span class="include">org.gradle.testfixtures.ProjectBuilder</span>
+<span class="keyword">import</span> <span class="include">org.junit.Rule</span>
+<span class="keyword">import</span> <span class="include">org.junit.rules.TemporaryFolder</span>
+<span class="keyword">import</span> <span class="include">spock.lang.Specification</span>
+<span class="keyword">import</span> <span class="include">spock.lang.Subject</span>
+
+<span class="type">class</span> <span class="class">UrlVerifyIntegrationTest</span> <span class="directive">extends</span> Specification {
+
+    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">String</span> EXAMPLE_URL = <span class="string"><span class="delimiter">'</span><span class="content">http://www.google.com/</span><span class="delimiter">'</span></span>
+
+    <span class="annotation">@Rule</span> TemporaryFolder temporaryFolder = <span class="keyword">new</span> TemporaryFolder()
+    <span class="annotation">@Subject</span> UrlVerify verifyUrlTask
+    <span class="keyword">def</span> httpCaller = Mock(HttpCaller)
+
+    <span class="keyword">def</span> <span class="function">setup</span>() {
+        <span class="keyword">def</span> project = ProjectBuilder.builder().withProjectDir(temporaryFolder.root).build()
+        verifyUrlTask = project.tasks.create(<span class="string"><span class="delimiter">'</span><span class="content">verifyUrl</span><span class="delimiter">'</span></span>, UrlVerify)
+        verifyUrlTask.httpCaller = httpCaller
+        verifyUrlTask.url = EXAMPLE_URL
+    }
+
+    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">can successfully resolve URL</span><span class="delimiter">&quot;</span></span>() {
+        <span class="key">when</span>:
+        verifyUrlTask.verify()
+
+        <span class="key">then</span>:
+        <span class="integer">1</span> * httpCaller.get(EXAMPLE_URL) &gt;&gt; <span class="keyword">new</span> HttpResponse(<span class="integer">200</span>, <span class="string"><span class="delimiter">'</span><span class="content">OK</span><span class="delimiter">'</span></span>)
+    }
+
+    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">throws exception when resolving URL for status code other than 200</span><span class="delimiter">&quot;</span></span>() {
+        <span class="key">when</span>:
+        verifyUrlTask.verify()
+
+        <span class="key">then</span>:
+        <span class="integer">1</span> * httpCaller.get(EXAMPLE_URL) &gt;&gt; <span class="keyword">new</span> HttpResponse(<span class="integer">500</span>, <span class="string"><span class="delimiter">'</span><span class="content">Internal Server Error</span><span class="delimiter">'</span></span>)
+        <span class="keyword">def</span> t = thrown(GradleException)
+        t.message == <span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to resolve url 'http://www.google.com/' (HTTP 500, Reason: Internal Server Error)</span><span class="delimiter">&quot;</span></span>
+    }
+
+    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">rethrows exception when failing to resolve URL</span><span class="delimiter">&quot;</span></span>() {
+        <span class="key">when</span>:
+        verifyUrlTask.verify()
+
+        <span class="key">then</span>:
+        <span class="integer">1</span> * httpCaller.get(EXAMPLE_URL) &gt;&gt; { <span class="keyword">throw</span> <span class="keyword">new</span> HttpCallException(<span class="string"><span class="delimiter">'</span><span class="content">unknown host</span><span class="delimiter">'</span></span>) }
+        <span class="keyword">def</span> t = thrown(GradleException)
+        t.message == <span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to resolve url 'http://www.google.com/'</span><span class="delimiter">&quot;</span></span>
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="functional-tests"><a class="anchor" href="#functional-tests"></a>3.3. Functional tests</h3>
+<div class="listingblock">
+<div class="title">UrlVerifierPlugin.java</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.gradle.sample</span>;
+
+<span class="keyword">import</span> <span class="include">org.gradle.api.Plugin</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.api.Project</span>;
+<span class="keyword">import</span> <span class="include">org.gradle.sample.tasks.UrlVerify</span>;
+
+<span class="directive">public</span> <span class="type">class</span> <span class="class">UrlVerifierPlugin</span> <span class="directive">implements</span> Plugin&lt;Project&gt; {
+    <span class="annotation">@Override</span>
+    <span class="directive">public</span> <span class="type">void</span> apply(Project project) {
+        UrlVerifierExtension extension = project.getExtensions().create(<span class="string"><span class="delimiter">&quot;</span><span class="content">verification</span><span class="delimiter">&quot;</span></span>, UrlVerifierExtension.class, project);
+        UrlVerify verifyUrlTask = project.getTasks().create(<span class="string"><span class="delimiter">&quot;</span><span class="content">verifyUrl</span><span class="delimiter">&quot;</span></span>, UrlVerify.class);
+        verifyUrlTask.setUrl(extension.getUrlProvider());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">functional-test.gradle</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy">gradlePlugin {
+    testSourceSets sourceSets.functionalTest
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">UrlVerifierPluginFunctionalTest.groovy</div>
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="groovy"><span class="keyword">package</span> org.gradle.sample
+
+<span class="keyword">import</span> <span class="include">org.gradle.testkit.runner.GradleRunner</span>
+<span class="keyword">import</span> <span class="include">org.junit.Rule</span>
+<span class="keyword">import</span> <span class="include">org.junit.rules.TemporaryFolder</span>
+<span class="keyword">import</span> <span class="include">spock.lang.Specification</span>
+
+<span class="keyword">import</span> <span class="include">static</span> <span class="include">org.gradle.testkit.runner.TaskOutcome.SUCCESS</span>
+
+<span class="type">class</span> <span class="class">UrlVerifierPluginFunctionalTest</span> <span class="directive">extends</span> Specification {
+    <span class="annotation">@Rule</span> TemporaryFolder testProjectDir = <span class="keyword">new</span> TemporaryFolder()
+    <span class="predefined-type">File</span> buildFile
+
+    <span class="keyword">def</span> <span class="function">setup</span>() {
+        buildFile = testProjectDir.newFile(<span class="string"><span class="delimiter">'</span><span class="content">build.gradle</span><span class="delimiter">'</span></span>)
+        buildFile &lt;&lt; <span class="string"><span class="delimiter">&quot;&quot;&quot;</span><span class="content">
+            plugins {
+                id 'org.gradle.sample.urlverifier'
+            }
+        </span><span class="delimiter">&quot;&quot;&quot;</span></span>
+    }
+
+    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">can successfully configure URL through extension and verify it</span><span class="delimiter">&quot;</span></span>() {
+        buildFile &lt;&lt; <span class="string"><span class="delimiter">&quot;&quot;&quot;</span><span class="content">
+            verification {
+                url = 'http://www.google.com/'
+            }
+        </span><span class="delimiter">&quot;&quot;&quot;</span></span>
+
+        <span class="key">when</span>:
+        <span class="keyword">def</span> result = GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments(<span class="string"><span class="delimiter">'</span><span class="content">verifyUrl</span><span class="delimiter">'</span></span>)
+            .withPluginClasspath()
+            .build()
+
+        <span class="key">then</span>:
+        result.output.contains(<span class="string"><span class="delimiter">&quot;</span><span class="content">Successfully resolved URL 'http://www.google.com/'</span><span class="delimiter">&quot;</span></span>)
+        result.task(<span class="string"><span class="delimiter">&quot;</span><span class="content">:verifyUrl</span><span class="delimiter">&quot;</span></span>).outcome == SUCCESS
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="summary"><a class="anchor" href="#summary"></a>4. Summary</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Please let us know on the <a href="https://discuss.gradle.org/">Gradle forum</a> if you are still having difficulties understanding any of the covered testing strategies. Which one works the best for your plugin? Let us know!</p>
@@ -133,21 +540,27 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="next_steps"><a class="anchor" href="#next_steps"></a>4. Next steps</h2>
+<h2 id="next_steps"><a class="anchor" href="#next_steps"></a>5. Next steps</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Testing Gradle plugins builds upon best practices and development strategies. You may be interested in:</p>
 </div>
-<div class="paragraph">
-<p><a href="https://guides.gradle.org/designing-gradle-plugins/">Designing Gradle plugins</a>
-<a href="https://guides.gradle.org/implementing-gradle-plugins/">Implementing Gradle plugins</a></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://guides.gradle.org/designing-gradle-plugins/">Designing Gradle plugins</a></p>
+</li>
+<li>
+<p><a href="https://guides.gradle.org/implementing-gradle-plugins/">Implementing Gradle plugins</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-08-11 17:38:50 +00:00
+Last updated 2017-08-11 18:47:10 +00:00
 </div>
 </div>
 </body>

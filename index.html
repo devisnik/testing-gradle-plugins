@@ -41,24 +41,19 @@
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#the_sample_project">1. The sample project</a></li>
-<li><a href="#manual_verification_and_debugging">2. Manual verification and debugging</a>
+<li><a href="#on_the_importance_of_testing">2. On the importance of testing</a>
 <ul class="sectlevel2">
-<li><a href="#rapid_development_for_plugins">2.1. Rapid development for plugins</a></li>
-<li><a href="#debugging_from_the_ide">2.2. Debugging from the IDE</a></li>
+<li><a href="#the_testing_pyramid">2.1. The testing pyramid</a></li>
 </ul>
 </li>
-<li><a href="#defining_and_implementing_appropriate_tests_types">3. Defining and implementing appropriate tests types</a>
+<li><a href="#manual-tests">3. Setting up manual tests</a></li>
+<li><a href="#implementing_automated_tests">4. Implementing automated tests</a>
 <ul class="sectlevel2">
-<li><a href="#the_testing_pyramid">3.1. The testing pyramid</a></li>
-<li><a href="#setting_up_dedicated_source_sets">3.2. Setting up dedicated source sets</a></li>
-<li><a href="#tooling_support_for_every_test_type">3.3. Tooling support for every test type</a></li>
-</ul>
-</li>
-<li><a href="#implementing_tests">4. Implementing tests</a>
-<ul class="sectlevel2">
-<li><a href="#unit-tests">4.1. Unit tests</a></li>
-<li><a href="#integration-tests">4.2. Integration tests</a></li>
-<li><a href="#functional-tests">4.3. Functional tests</a></li>
+<li><a href="#organizing_test_source_code">4.1. Organizing test source code</a></li>
+<li><a href="#setting_up_dedicated_source_sets">4.2. Setting up dedicated source sets</a></li>
+<li><a href="#unit-tests">4.3. Unit tests</a></li>
+<li><a href="#integration-tests">4.4. Integration tests</a></li>
+<li><a href="#functional-tests">4.5. Functional tests</a></li>
 </ul>
 </li>
 <li><a href="#summary">5. Summary</a></li>
@@ -97,27 +92,39 @@
 <h2 id="the_sample_project"><a class="anchor" href="#the_sample_project"></a>1. The sample project</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>All discussions around testing in this guide are based on a sample project called URL verifier plugin. You can inspect and download the <a href="https://github.com/gradle-guides/testing-gradle-plugins/tree/master/samples/code/url-verifier-plugin">source code of the plugin</a> in the corresponding GitHub repository. The plugin creates a task named <code>verifyUrl</code> that checks whether a given URL can be resolved via HTTP GET. The URL can be provided through an extension named <code>verification</code> in the consuming build script.</p>
+<p>All discussions around testing in this guide are based on a sample project called URL verifier plugin. The plugin creates a task named <code>verifyUrl</code> that checks whether a given URL can be resolved via HTTP GET. The URL can be provided through an extension named <code>verification</code> in the consuming build script. You can inspect and download the <a href="https://github.com/gradle-guides/testing-gradle-plugins/tree/master/samples/code/url-verifier-plugin">source code of the plugin</a> in the corresponding GitHub repository.</p>
 </div>
 <div class="paragraph">
-<p>The following build script demonstrates how a consuming build script could look like.</p>
+<p>The following build script demonstrates a build script consuming the plugin.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.gradle</div>
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="groovy">apply <span class="key">plugin</span>: <span class="string"><span class="delimiter">'</span><span class="content">org.gradle.sample.urlverifier</span><span class="delimiter">'</span></span>
+<pre class="CodeRay highlight"><code data-lang="groovy">apply <span class="key">plugin</span>: <span class="string"><span class="delimiter">'</span><span class="content">org.gradle.sample.urlverifier</span><span class="delimiter">'</span></span>   <i class="conum" data-value="1"></i><b>(1)</b>
 
-verification {
+verification {                                  <i class="conum" data-value="2"></i><b>(2)</b>
     url = <span class="string"><span class="delimiter">'</span><span class="content">http://www.google.com/</span><span class="delimiter">'</span></span>
 }</code></pre>
 </div>
 </div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Applies the plugin to the project</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Configures the URL to be verified through the exposed extension</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
-<p>Executing the command <code>gradle verifyUrl</code> would render a success message in case the URL can be resolved.</p>
+<p>Executing the task provided by the plugin renders a success message if the HTTP GET call to the configured URL returns with a 200 response code.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="CodeRay highlight"><code data-lang="shell">Parallel execution is an incubating feature.
+<pre class="CodeRay highlight"><code data-lang="shell">$ gradle verifyUrl
 
 &gt; Task :verifyUrl
 Successfully resolved URL 'http://www.google.com/'
@@ -127,27 +134,89 @@ BUILD SUCCESSFUL in 0s
 </div>
 </div>
 <div class="paragraph">
-<p>The following sections will discuss how to effectively debug and test the plugin from different angles.</p>
+<p>The following sections will discuss how to effectively test the plugin manually and in an automated fashion. Before diving into the code, let&#8217;s first identify the different types of tests.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="manual_verification_and_debugging"><a class="anchor" href="#manual_verification_and_debugging"></a>2. Manual verification and debugging</h2>
+<h2 id="on_the_importance_of_testing"><a class="anchor" href="#on_the_importance_of_testing"></a>2. On the importance of testing</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Testing is a foundational activity in the software development lifecycle. Appropriate testing ensures that the software works on a functional and non-functional level before it is released to the end user. Furthermore, automated testing also enables the development team to refactor and evlove the code without fearing to introduce regressions in the process.</p>
+</div>
 <div class="sect2">
-<h3 id="rapid_development_for_plugins"><a class="anchor" href="#rapid_development_for_plugins"></a>2.1. Rapid development for plugins</h3>
+<h3 id="the_testing_pyramid"><a class="anchor" href="#the_testing_pyramid"></a>2.1. The testing pyramid</h3>
+<div class="imageblock" style="float: right">
+<div class="content">
+<img src="images/testing-pyramid.png" alt="testing pyramid">
+</div>
+</div>
+<div class="paragraph">
+<p>Probably the easiest way to test software is to manually exercise it. <strong>Manual testing</strong> can occur at any time is is not bound to writing automation code. However, manual testing is error-prone and cumbersome as it requires a human to walk through a set of predefined test cases.</p>
+</div>
+<div class="paragraph">
+<p>In contrast to manual testing, other types of tests can be fully automated and run with every change to the code. The testing pyramid introduced by Mike Cohen in his book <a href="https://www.mountaingoatsoftware.com/books/succeeding-with-agile-software-development-using-scrum">Succeeding with Agile: Software Development Using Scrum</a> describes three types of automated tests with tradeoffs in regards to the quantity of those tests, their maintaince costs and the time it takes to execute them.</p>
+</div>
+<div class="paragraph">
+<p><strong>Unit testing</strong> aims to verify the smallest unit of code. In Java-based projects this unit is a method. Unit tests usually do not interact with other parts of the system e.g. a database or the file system. Any references are isolated by replacing the interaction with Stubs or Mocks. For Gradle plugin implementations, the unit under test is a POJO or utility class that doesn&#8217;t use the Gradle API.</p>
+</div>
+<div class="paragraph">
+<p><strong>Integration testing</strong> verifies that multiple classes or components work together as a whole. The code under test may reach out to external subsystems or use the Gradle API.</p>
+</div>
+<div class="paragraph">
+<p><strong>Functional testing</strong> is used to test the system from an end user&#8217;s perspective. End-to-end tests for Gradle plugins stand up a build script, apply the plugin under test and execute the build with a specific task. The outcome of the build (e.g. standard output/error or generated artifacts) verfies the correctness of the functionality.</p>
+</div>
+<div class="paragraph">
+<p>Implementing manual and automated testing for Gradle plugins is straight forward - it just requires the right tooling. The table below gives you a brief overview on how to approach each test type. For a detailed discussion and code example please refer to the dedicated section in this guide.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Test type</th>
+<th class="tableblock halign-left valign-top">Tooling support</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#manual-tests">Manual tests</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.gradle.org/4.1/userguide/composite_builds.html">Gradle composite builds</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#unit-tests">Unit tests</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#integration-tests">Integration tests</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and <a href="https://docs.gradle.org/4.1/javadoc/org/gradle/testfixtures/ProjectBuilder.html">Gradle&#8217;s ProjectBuilder API</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#functional-tests">Functional tests</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and <a href="https://docs.gradle.org/4.1/userguide/test_kit.html">Gradle TestKit</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="manual-tests"><a class="anchor" href="#manual-tests"></a>3. Setting up manual tests</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>One way to test a plugin in a consuming project is to publish the plugin JAR file to a local repository and point the project it. Granted this technique is cumbersome - every change to the plugin code requires the developer to publish a new artifact.</p>
 </div>
 <div class="paragraph">
-<p>With the introduction of the <a href="https://docs.gradle.org/4.1/userguide/composite_builds.html">composite builds</a> feature, plugin developers have a more powerful mechanism at their disposal. The standalone plugin project and the project consuming the plugin can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of publishing.</p>
+<p>With the introduction of the <a href="https://docs.gradle.org/4.1/userguide/composite_builds.html">composite builds</a> feature, plugin developers have a more powerful mechanism at their disposal. The standalone plugin project and the consuming project can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of re-publishing the binary file.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>.
 ├── include-plugin-build   <i class="conum" data-value="1"></i><b>(1)</b>
-│   ├── build.gradle
-│   └── settings.gradle
+│   ├── build.gradle
+│   └── settings.gradle
 └── url-verifier-plugin    <i class="conum" data-value="2"></i><b>(2)</b>
     ├── build.gradle
     ├── settings.gradle
@@ -188,26 +257,39 @@ BUILD SUCCESSFUL in 0s
 <pre class="CodeRay highlight"><code data-lang="groovy">includeBuild <span class="string"><span class="delimiter">'</span><span class="content">../url-verifier-plugin</span><span class="delimiter">'</span></span></code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>The execution of the project <code>include-plugin-build</code> in plain console mode clearly shows that the plugin project became part of a multi-project build.</p>
 </div>
-<div class="sect2">
-<h3 id="debugging_from_the_ide"><a class="anchor" href="#debugging_from_the_ide"></a>2.2. Debugging from the IDE</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="shell">$ gradle verifyUrl --console=plain
 
+:url-verifier-plugin:compileJava
+:url-verifier-plugin:compileGroovy NO-SOURCE
+:url-verifier-plugin:pluginDescriptors
+:url-verifier-plugin:processResources
+:url-verifier-plugin:classes
+:url-verifier-plugin:jar
+:verifyUrl
+Successfully resolved URL 'http://www.google.com/'
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next up, you&#8217;ll learn how to implement automated tests for Gradle plugins.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="defining_and_implementing_appropriate_tests_types"><a class="anchor" href="#defining_and_implementing_appropriate_tests_types"></a>3. Defining and implementing appropriate tests types</h2>
+<h2 id="implementing_automated_tests"><a class="anchor" href="#implementing_automated_tests"></a>4. Implementing automated tests</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="the_testing_pyramid"><a class="anchor" href="#the_testing_pyramid"></a>3.1. The testing pyramid</h3>
-<div class="imageblock" style="text-align: center">
-<div class="content">
-<img src="images/testing-pyramid.png" alt="testing pyramid">
-</div>
-</div>
+<div class="paragraph">
+<p>Setting up a suite of tests earlier on the project lifecycle is crucial to the success of your plugin. You will encounter various situations that make your tests invaluable e.g. when upgrading the plugin to a new version of Gradle or enhancing and refactoring the code.</p>
 </div>
 <div class="sect2">
-<h3 id="setting_up_dedicated_source_sets"><a class="anchor" href="#setting_up_dedicated_source_sets"></a>3.2. Setting up dedicated source sets</h3>
+<h3 id="organizing_test_source_code"><a class="anchor" href="#organizing_test_source_code"></a>4.1. Organizing test source code</h3>
 <div class="listingblock">
 <div class="content">
 <pre>.
@@ -247,6 +329,9 @@ BUILD SUCCESSFUL in 0s
 </tr>
 </table>
 </div>
+</div>
+<div class="sect2">
+<h3 id="setting_up_dedicated_source_sets"><a class="anchor" href="#setting_up_dedicated_source_sets"></a>4.2. Setting up dedicated source sets</h3>
 <div class="listingblock">
 <div class="title">integration-test.gradle</div>
 <div class="content">
@@ -277,41 +362,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="tooling_support_for_every_test_type"><a class="anchor" href="#tooling_support_for_every_test_type"></a>3.3. Tooling support for every test type</h3>
-<table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: 20%;">
-<col style="width: 80%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Test type</th>
-<th class="tableblock halign-left valign-top">Tooling support</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#unit-tests">Unit tests</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#integration-tests">Integration tests</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and <a href="https://docs.gradle.org/4.1/javadoc/org/gradle/testfixtures/ProjectBuilder.html">Gradle&#8217;s ProjectBuilder API</a></p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#functional-tests">Functional tests</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and <a href="https://docs.gradle.org/4.1/userguide/test_kit.html">Gradle TestKit</a></p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="implementing_tests"><a class="anchor" href="#implementing_tests"></a>4. Implementing tests</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="unit-tests"><a class="anchor" href="#unit-tests"></a>4.1. Unit tests</h3>
+<h3 id="unit-tests"><a class="anchor" href="#unit-tests"></a>4.3. Unit tests</h3>
 <div class="listingblock">
 <div class="title">HttpResponse.java</div>
 <div class="content">
@@ -374,7 +425,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="integration-tests"><a class="anchor" href="#integration-tests"></a>4.2. Integration tests</h3>
+<h3 id="integration-tests"><a class="anchor" href="#integration-tests"></a>4.4. Integration tests</h3>
 <div class="listingblock">
 <div class="title">DefaultHttpCaller.java</div>
 <div class="content">
@@ -563,7 +614,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="functional-tests"><a class="anchor" href="#functional-tests"></a>4.3. Functional tests</h3>
+<h3 id="functional-tests"><a class="anchor" href="#functional-tests"></a>4.5. Functional tests</h3>
 <div class="listingblock">
 <div class="title">UrlVerifierPlugin.java</div>
 <div class="content">
@@ -672,7 +723,7 @@ check.dependsOn integrationTest</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-08-11 20:56:43 +00:00
+Last updated 2017-08-14 19:15:47 +00:00
 </div>
 </div>
 </body>

@@ -43,7 +43,7 @@
 <li><a href="#the_sample_project">1. The sample project</a></li>
 <li><a href="#on_the_importance_of_testing">2. On the importance of testing</a>
 <ul class="sectlevel2">
-<li><a href="#the_testing_pyramid">2.1. The testing pyramid</a></li>
+<li><a href="#testing-pyramid">2.1. The testing pyramid</a></li>
 <li><a href="#tooling_support">2.2. Tooling support</a></li>
 </ul>
 </li>
@@ -55,7 +55,7 @@
 <li><a href="#configuring_a_test_framework">4.3. Configuring a test framework</a></li>
 </ul>
 </li>
-<li><a href="#implementing_automated_tests">5. implementing automated tests</a>
+<li><a href="#implementing_automated_tests">5. Implementing automated tests</a>
 <ul class="sectlevel2">
 <li><a href="#unit-tests">5.1. Implementing unit tests</a></li>
 <li><a href="#integration-tests">5.2. Implementing integration tests</a></li>
@@ -71,7 +71,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>With practice writing Gradle plugins comes easy especially with the knowledge of the <a href="https://guides.gradle.org/implementing-gradle-plugins/">Implementing Gradle plugins</a> guide under your belt. Part of every development process is testing whether that’s in a manual or automated fashion. The same is true for Gradle plugin code. Before letting any consumer use a plugin its functionality should be verified on different levels. In this guide you will learn how to debug plugin code during development. You will also getting to know the techniques used to write and execute different types of tests.</p>
+<p>With practice, writing Gradle plugins comes easy especially with the knowledge of the <a href="https://guides.gradle.org/implementing-gradle-plugins/">Implementing Gradle plugins</a> guide under your belt. Testing plays a crucial role in the development process as it ensures reliable and high-quality software. The same principles apply to build code and more specifically Gradle plugins. In this guide you will learn effective techniques for testing plugin code.</p>
 </div>
 <div class="paragraph">
 <p>This guide assumes you have:</p>
@@ -98,10 +98,10 @@
 <h2 id="the_sample_project"><a class="anchor" href="#the_sample_project"></a>1. The sample project</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>All discussions around testing in this guide are based on a sample project called URL verifier plugin. The plugin creates a task named <code>verifyUrl</code> that checks whether a given URL can be resolved via HTTP GET. The URL can be provided through an extension named <code>verification</code> in the consuming build script. You can inspect and download the <a href="https://github.com/gradle-guides/testing-gradle-plugins/tree/master/samples/code/url-verifier-plugin">source code of the plugin</a> in the corresponding GitHub repository.</p>
+<p>All discussions in this guide are centered around a sample project called URL verifier plugin. The plugin creates a task named <code>verifyUrl</code> that checks whether a given URL can be resolved via HTTP GET. The end user can provide the URL via an extension named <code>verification</code>. To get familiar with the functionality of the plugin you can inspect the <a href="https://github.com/gradle-guides/testing-gradle-plugins/tree/master/samples/code/url-verifier-plugin">source code</a> on GitHub.</p>
 </div>
 <div class="paragraph">
-<p>The following build script demonstrates a build script consuming the plugin.</p>
+<p>The following build script assumes that the plugin JAR file has been published to a binary repository. In a nutshell, the script demonstrates how to apply the plugin to the project and configure its exposed extension.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.gradle</div>
@@ -126,7 +126,7 @@ verification {                                  <i class="conum" data-value="2">
 </table>
 </div>
 <div class="paragraph">
-<p>Executing the task provided by the plugin renders a success message if the HTTP GET call to the configured URL returns with a 200 response code.</p>
+<p>Executing the task renders a success message if the HTTP GET call to the configured URL returns with a 200 response code.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -140,7 +140,7 @@ BUILD SUCCESSFUL in 0s
 </div>
 </div>
 <div class="paragraph">
-<p>The following sections will discuss how to effectively test the plugin manually and in an automated fashion. Before diving into the code, let&#8217;s first identify the different types of tests.</p>
+<p>Before diving into the code, let&#8217;s first revisit the different types of tests and the tooling that supports implementing them.</p>
 </div>
 </div>
 </div>
@@ -148,29 +148,29 @@ BUILD SUCCESSFUL in 0s
 <h2 id="on_the_importance_of_testing"><a class="anchor" href="#on_the_importance_of_testing"></a>2. On the importance of testing</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Testing is a foundational activity in the software development lifecycle. Appropriate testing ensures that the software works on a functional and non-functional level before it is released to the end user. Furthermore, automated testing also enables the development team to refactor and evlove the code without fearing to introduce regressions in the process.</p>
+<p>Testing is a foundational activity in the software development lifecycle. Appropriate testing ensures that the software works on a functional and non-functional level before it is released to the end user. As a by product, automated testing also enables the development team to refactor and evolve the code without fearing to introduce regressions in the process.</p>
 </div>
 <div class="sect2">
-<h3 id="the_testing_pyramid"><a class="anchor" href="#the_testing_pyramid"></a>2.1. The testing pyramid</h3>
+<h3 id="testing-pyramid"><a class="anchor" href="#testing-pyramid"></a>2.1. The testing pyramid</h3>
 <div class="imageblock" style="float: right">
 <div class="content">
 <img src="images/testing-pyramid.png" alt="testing pyramid">
 </div>
 </div>
 <div class="paragraph">
-<p>Probably the easiest way to test software is to manually exercise it. <strong>Manual testing</strong> can occur at any time is is not bound to writing automation code. However, manual testing is error-prone and cumbersome as it requires a human to walk through a set of predefined test cases.</p>
+<p>Probably the easiest way to test software is to manually exercise it. <strong>Manual testing</strong> can occur at any time and is not bound to writing automation code. However, manual testing is error-prone and cumbersome as it requires a human to walk through a set of predefined test cases. Manually testing Gradle plugins usually requires publishing the binary artifact to a repository and consuming it from a build script.</p>
 </div>
 <div class="paragraph">
-<p>In contrast to manual testing, other types of tests can be fully automated and run with every change to the code. The testing pyramid introduced by Mike Cohen in his book <a href="https://www.mountaingoatsoftware.com/books/succeeding-with-agile-software-development-using-scrum">Succeeding with Agile: Software Development Using Scrum</a> describes three types of automated tests with tradeoffs in regards to the quantity of those tests, their maintaince costs and the time it takes to execute them.</p>
+<p>Other types of tests can be fully automated and exercised with every change to the source code. The testing pyramid introduced by Mike Cohen in his book <a href="https://www.mountaingoatsoftware.com/books/succeeding-with-agile-software-development-using-scrum">Succeeding with Agile: Software Development Using Scrum</a> describes three types of automated tests.</p>
 </div>
 <div class="paragraph">
-<p><strong>Unit testing</strong> aims to verify the smallest unit of code. In Java-based projects this unit is a method. Unit tests usually do not interact with other parts of the system e.g. a database or the file system. Any references are isolated by replacing the interaction with Stubs or Mocks. For Gradle plugin implementations, the unit under test is a POJO or utility class that doesn&#8217;t use the Gradle API.</p>
+<p><strong>Unit testing</strong> aims to verify the smallest unit of code. In Java-based projects this unit is a method. Unit tests usually do not interact with other parts of the system e.g. a database or the file system. Interactions with other parts of the system are usually cut off with the help of Stubs or Mocks. You will find that POJOs and utility classes are good candidates for unit tests as they are self-contained and do not use the Gradle API.</p>
 </div>
 <div class="paragraph">
 <p><strong>Integration testing</strong> verifies that multiple classes or components work together as a whole. The code under test may reach out to external subsystems or use the Gradle API.</p>
 </div>
 <div class="paragraph">
-<p><strong>Functional testing</strong> is used to test the system from an end user&#8217;s perspective. End-to-end tests for Gradle plugins stand up a build script, apply the plugin under test and execute the build with a specific task. The outcome of the build (e.g. standard output/error or generated artifacts) verfies the correctness of the functionality.</p>
+<p><strong>Functional testing</strong> is used to test the system from the end user&#8217;s perspective. End-to-end tests for Gradle plugins stand up a build script, apply the plugin under test and execute the build with a specific task. The outcome of the build (e.g. standard output/error or generated artifacts) verifies the correctness of the functionality.</p>
 </div>
 </div>
 <div class="sect2">
@@ -215,10 +215,26 @@ BUILD SUCCESSFUL in 0s
 <h2 id="manual-tests"><a class="anchor" href="#manual-tests"></a>3. Setting up manual tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>One way to test a plugin in a consuming project is to publish the plugin JAR file to a local repository and point the project it. Granted this technique is cumbersome - every change to the plugin code requires the developer to publish a new artifact.</p>
+<p>The typical way to manually test a Gradle plugin follows this workflow:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Make a change to the plugin code.</p>
+</li>
+<li>
+<p>Publish a new version of the plugin artifact to a local repository.</p>
+</li>
+<li>
+<p>Resolve the plugin from the repository and apply it to a sample project.</p>
+</li>
+<li>
+<p>Rinse and repeat.</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
-<p>With the introduction of the <a href="https://docs.gradle.org/4.1/userguide/composite_builds.html">composite builds</a> feature, plugin developers have a more powerful mechanism at their disposal. The standalone plugin project and the consuming project can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of re-publishing the binary file.</p>
+<p>Granted this technique is cumbersome - every change to the plugin code requires the developer to publish a new version of the artifact. With the introduction of the <a href="https://docs.gradle.org/4.1/userguide/composite_builds.html">composite builds</a> feature, plugin developers have a more convenient and powerful mechanism at their disposal. The standalone plugin project and the consuming project can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of re-publishing the binary file.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -287,7 +303,7 @@ BUILD SUCCESSFUL in 1s
 </div>
 </div>
 <div class="paragraph">
-<p>Next up, you&#8217;ll learn how to implement automated tests for Gradle plugins.</p>
+<p>Manual testing has its place in the development process. By no means it is a replacement for automated testing. Next up, you&#8217;ll learn how to organize and implement automated tests for Gradle plugins.</p>
 </div>
 </div>
 </div>
@@ -295,12 +311,15 @@ BUILD SUCCESSFUL in 1s
 <h2 id="setting_up_automated_tests"><a class="anchor" href="#setting_up_automated_tests"></a>4. Setting up automated tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Setting up a suite of tests earlier on the project lifecycle is crucial to the success of your plugin. You will encounter various situations that make your tests an invaluable safety net e.g. when upgrading the plugin to a new Gradle version and enhancing or refactoring the code.</p>
+<p>Setting up a suite of tests earlier on is crucial to the success of your plugin. You will encounter various situations that make your tests an invaluable safety net you can rely on e.g. when upgrading the plugin to a new Gradle version and enhancing or refactoring the code.</p>
 </div>
 <div class="sect2">
 <h3 id="organizing_test_source_code"><a class="anchor" href="#organizing_test_source_code"></a>4.1. Organizing test source code</h3>
 <div class="paragraph">
-<p>To cover the most important use cases with test code a good distribution of unit, integration and functional tests is recommended. Separating the source code for each test type automatically results in a more maintainable and manageable project. By default the Java project already creates a convention for organizing unit tests, the directory <code>src/test/java</code>, or if the Groovy plugin is applied, <code>src/test/groovy</code>. Consequently, source code directories for other test types should follow a similar pattern. Below you can find an exemplary project layout for a plugin project that chooses to use a Groovy-based testing approach.</p>
+<p>It is recommended to implement a good distribution of unit, integration and functional tests to cover the most important use cases. Separating the source code for each test type automatically results in a project that is more maintainable and manageable.</p>
+</div>
+<div class="paragraph">
+<p>By default the Java project already creates a convention for organizing unit tests, the directory <code>src/test/java</code>. Additionally, if you apply the Groovy plugin source code under the directory <code>src/test/groovy</code> is taken under consideration for compilation. Consequently, source code directories for other test types should follow a similar pattern. Below you can find an exemplary project layout for a plugin project that chooses to use a Groovy-based testing approach.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -360,7 +379,7 @@ The directories <code>src/integTest/groovy</code> and <code>src/functTest/groovy
 <div class="sect2">
 <h3 id="modeling_test_types"><a class="anchor" href="#modeling_test_types"></a>4.2. Modeling test types</h3>
 <div class="paragraph">
-<p>Gradle models source code directories with the help of the <a href="https://docs.gradle.org/4.1/userguide/java_plugin.html#sec:working_with_java_source_sets">source set concept</a>. By pointing an instance of a source set to one or many source code directories, Gradle will automatically creating a corresponding compilation task out-of-the-box. The following script plugin demonstrates the creation of a source set for integration tests.</p>
+<p>Gradle models source code directories with the help of the <a href="https://docs.gradle.org/4.1/userguide/java_plugin.html#sec:working_with_java_source_sets">source set concept</a>. By pointing an instance of a source set to one or many source code directories, Gradle will automatically create a corresponding compilation task out-of-the-box. The following script plugin demonstrates the creation of a source set for integration tests.</p>
 </div>
 <div class="listingblock">
 <div class="title">integration-test.gradle</div>
@@ -376,7 +395,7 @@ The directories <code>src/integTest/groovy</code> and <code>src/functTest/groovy
 </div>
 </div>
 <div class="paragraph">
-<p>Source sets are only responsible for compiling source code but do not deal with executing the byte code. For the purpose of test execution, a corresponding task of type <a href="https://docs.gradle.org/4.1/javadoc/org/gradle/api/tasks/testing/Test.html">Test</a> needs to be established. The following task demonstrate the setup for executing integration tests. As you can see in the task configuring the classes and runtime classpath of the integration test source set is referenced.</p>
+<p>Source sets are only responsible for compiling source code but do not deal with executing the byte code. For the purpose of test execution, a corresponding task of type <a href="https://docs.gradle.org/4.1/javadoc/org/gradle/api/tasks/testing/Test.html">Test</a> needs to be established. The following task demonstrate the setup for executing integration tests. As you can see below, the task references the classes and runtime classpath of the integration test source set.</p>
 </div>
 <div class="listingblock">
 <div class="title">integration-test.gradle</div>
@@ -396,7 +415,7 @@ check.dependsOn integrationTest</code></pre>
 <div class="sect2">
 <h3 id="configuring_a_test_framework"><a class="anchor" href="#configuring_a_test_framework"></a>4.3. Configuring a test framework</h3>
 <div class="paragraph">
-<p>Writing test code for Gradle plugin is not bound to a specific test framework. Popular choices include <a href="http://junit.org/junit4/">JUnit</a>, <a href="http://testng.org/">TestNG</a> and <a href="http://spockframework.org/">Spock</a>. Once you choose an option, you have to add it to the compile classpath for your tests. The following code snippet shows how to use Spock for implementing tests.</p>
+<p>Gradle does not dictate the use of a specific test framework. Popular choices include <a href="http://junit.org/junit4/">JUnit</a>, <a href="http://testng.org/">TestNG</a> and <a href="http://spockframework.org/">Spock</a>. Once you choose an option, you have to add its dependency to the compile classpath for your tests. The following code snippet shows how to use Spock for implementing tests.</p>
 </div>
 <div class="listingblock">
 <div class="title">build.gradle</div>
@@ -419,20 +438,20 @@ dependencies {
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Spock is a Groovy-based BDD test framework that even includes APIs for creating Stubs and Mocks. The Gradle team prefers the Spock over other options for its expressiveness and conciseness.
+Spock is a Groovy-based BDD test framework that even includes APIs for creating Stubs and Mocks. The Gradle team prefers Spock over other options for its expressiveness and conciseness.
 </td>
 </tr>
 </table>
-</div>
-<div class="paragraph">
-<p>With the knowledge of setting up test source sets and tasks, let&#8217;s also discuss an concrete example for unit, integration and functional tests. All examples are based on Spock.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="implementing_automated_tests"><a class="anchor" href="#implementing_automated_tests"></a>5. implementing automated tests</h2>
+<h2 id="implementing_automated_tests"><a class="anchor" href="#implementing_automated_tests"></a>5. Implementing automated tests</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>This section discusses representative implementation examples for unit, integration and functional tests. All test classes are based on the use of Spock though it should be relatively easy to adapt the code to a different test framework. You can find all classes in the <a href="https://github.com/gradle-guides/testing-gradle-plugins/tree/master/samples/code/url-verifier-plugin">source code repository for this guide</a>. Please revisit the section <a href="#testing-pyramid">the testing pyramid</a> for a formal discussion of the definition of each test type.</p>
+</div>
 <div class="sect2">
 <h3 id="unit-tests"><a class="anchor" href="#unit-tests"></a>5.1. Implementing unit tests</h3>
 <div class="paragraph">
@@ -541,7 +560,7 @@ Spock is a Groovy-based BDD test framework that even includes APIs for creating 
 </div>
 </div>
 <div class="paragraph">
-<p>Implementing an integration test for <code>DefaultHttpCaller</code> doesn&#8217;t look much different from the unit test shown in the previous section. In fact there&#8217;s nothing special to it.</p>
+<p>Implementing an integration test for <code>DefaultHttpCaller</code> doesn&#8217;t look much different from the unit test shown in the previous section.</p>
 </div>
 <div class="listingblock">
 <div class="title">DefaultHttpCallerIntegrationTest.groovy</div>
@@ -579,7 +598,7 @@ Spock is a Groovy-based BDD test framework that even includes APIs for creating 
 <div class="sect3">
 <h4 id="class_under_test_uses_gradle_api"><a class="anchor" href="#class_under_test_uses_gradle_api"></a>5.2.2. Class under test uses Gradle API</h4>
 <div class="paragraph">
-<p>The task type responsible for verifying a URL is actually a more interesting example. It not only calls an URL via HTTP and verifies the response but also heavily leverages the Gradle API. The Gradle task is created by the plugin. However, if you wanted to create an integration test for just the task type then you don&#8217;t necessarily want to test the plugin implementation as well.</p>
+<p>The task implementation responsible for verifying a URL is a more interesting example as it requires a dependency on the Gradle API.</p>
 </div>
 <div class="listingblock">
 <div class="title">UrlVerify.java</div>
@@ -640,7 +659,7 @@ Spock is a Groovy-based BDD test framework that even includes APIs for creating 
 </div>
 </div>
 <div class="paragraph">
-<p>An effective way to creating task instance in an integration is the <code>ProjectBuilder</code> API. <code>ProjectBuilder</code> is a public API that gives you an entry point for creating a <code>Project</code> instance. To be able to use the <code>ProjectBuilder</code> API the test setup needs to declare a references to the Gradle API.</p>
+<p>Creating a task in an integration test requires a reference to the <code>Project</code> instance. To be able to use the <code>ProjectBuilder</code> API the test setup needs to declare a reference to the Gradle API.</p>
 </div>
 <div class="listingblock">
 <div class="title">integration-test.gradle</div>
@@ -663,7 +682,7 @@ The created <code>Project</code> instance acts as a stand-in object that <em>alm
 </table>
 </div>
 <div class="paragraph">
-<p>The following integration tests demonstrates the use of <code>ProjectBuilder</code>. The <code>setup</code> method first creates a <code>Project</code> instance and then a task instance of type <code>UrlVerify</code>. The test code mocks the HTTP communication so that each test code can solely concentrate on verifying the correct behavior of the task.</p>
+<p>The following integration test demonstrates the use of <code>ProjectBuilder</code>. The <code>setup</code> method first creates a <code>Project</code> instance. From the <code>Project</code>, the test creates a task of type <code>UrlVerify</code>. Any HTTP communication has been mocked. All test cases can solely concentrate on verifying the correct behavior of the task implementation.</p>
 </div>
 <div class="listingblock">
 <div class="title">UrlVerifyIntegrationTest.groovy</div>
@@ -729,7 +748,7 @@ The created <code>Project</code> instance acts as a stand-in object that <em>alm
 <div class="sect2">
 <h3 id="functional-tests"><a class="anchor" href="#functional-tests"></a>5.3. Implementing functional tests</h3>
 <div class="paragraph">
-<p>Functional tests verify the correctness of the plugin end-to-end. Practically that means applying, configuring and executing the functionality the plugin implementation. The class <code>UrlVerifierPlugin</code> shows the actual plugin implementation of the URL verifier. As you can see, the class exposes an extension and a task instances that uses the URL value confiured bt the end user.</p>
+<p>Functional tests verify the correctness of the plugin end-to-end. In practice that means applying, configuring and executing the functionality of the plugin implementation represented by the class <code>UrlVerifierPlugin</code>. As you can see, the implementation exposes an extension and a task instance that uses the URL value configured by the end user.</p>
 </div>
 <div class="listingblock">
 <div class="title">UrlVerifierPlugin.java</div>
@@ -751,7 +770,7 @@ The created <code>Project</code> instance acts as a stand-in object that <em>alm
 </div>
 </div>
 <div class="paragraph">
-<p>Every Gradle plugin project should apply the <a href="https://docs.gradle.org/4.1/userguide/javaGradle_plugin.html">plugin development plugin</a> to reduce boilerplate code. By applying the plugin development plugin, the project is preconfigured to use TestKit. Now that we use a different source set for functional tests than then standard one, you have to point it to it.</p>
+<p>Every Gradle plugin project should apply the <a href="https://docs.gradle.org/4.1/userguide/javaGradle_plugin.html">plugin development plugin</a> to reduce boilerplate code. By applying the plugin development plugin, the project is preconfigured for the use of TestKit. Let&#8217;s point the plugin to the custom source set containing functional tests.</p>
 </div>
 <div class="listingblock">
 <div class="title">functional-test.gradle</div>
@@ -845,7 +864,7 @@ The created <code>Project</code> instance acts as a stand-in object that <em>alm
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-08-14 22:22:50 +00:00
+Last updated 2017-08-15 16:07:58 +00:00
 </div>
 </div>
 </body>

@@ -62,7 +62,7 @@
 <li><a href="#functional-tests">5.3. Implementing functional tests</a></li>
 </ul>
 </li>
-<li><a href="#summary">6. Summary</a></li>
+<li><a href="#help_improve_this_guide">6. Help improve this guide</a></li>
 <li><a href="#next_steps">7. Next steps</a></li>
 </ul>
 </div>
@@ -71,7 +71,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>With practice, writing Gradle plugins comes easy especially with the knowledge of the <a href="https://guides.gradle.org/implementing-gradle-plugins/">Implementing Gradle plugins</a> guide under your belt. Testing plays a crucial role in the development process as it ensures reliable and high-quality software. The same principles apply to build code and more specifically Gradle plugins. In this guide you will learn effective techniques for testing plugin code.</p>
+<p>Testing plays a crucial role in the development process as it ensures reliable and high-quality software. The same principles apply to build code and more specifically Gradle plugins. In this guide you will learn effective techniques for testing plugin code.</p>
 </div>
 <div class="paragraph">
 <p>This guide assumes you have:</p>
@@ -82,7 +82,7 @@
 <p>Basic understanding of software engineering practices</p>
 </li>
 <li>
-<p>Knowledge of Gradle plugin implementation techniques</p>
+<p>Knowledge of <a href="https://guides.gradle.org/implementing-gradle-plugins/">Gradle plugin implementation techniques</a></p>
 </li>
 <li>
 <p>Working knowledge in writing Java code</p>
@@ -128,7 +128,7 @@ verification {                                  <i class="conum" data-value="2">
 <div class="paragraph">
 <p>Executing the task renders a success message if the HTTP GET call to the configured URL returns with a 200 response code.</p>
 </div>
-<div class="listingblock">
+<div id="verify-url-cmd-output" class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="shell">$ gradle verifyUrl
 
@@ -148,7 +148,7 @@ BUILD SUCCESSFUL in 0s
 <h2 id="on_the_importance_of_testing"><a class="anchor" href="#on_the_importance_of_testing"></a>2. On the importance of testing</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Testing is a foundational activity in the software development lifecycle. Appropriate testing ensures that the software works on a functional and non-functional level before it is released to the end user. As a by product, automated testing also enables the development team to refactor and evolve the code without fearing to introduce regressions in the process.</p>
+<p>Testing is a foundational activity in the software development life cycle. Appropriate testing ensures that the software works on a functional and non-functional level before it is released to the end user. As a by product, automated testing also enables the development team to refactor and evolve the code without fearing to introduce regressions in the process.</p>
 </div>
 <div class="sect2">
 <h3 id="testing-pyramid"><a class="anchor" href="#testing-pyramid"></a>2.1. The testing pyramid</h3>
@@ -158,7 +158,7 @@ BUILD SUCCESSFUL in 0s
 </div>
 </div>
 <div class="paragraph">
-<p>Probably the easiest way to test software is to manually exercise it. <strong>Manual testing</strong> can occur at any time and is not bound to writing automation code. However, manual testing is error-prone and cumbersome as it requires a human to walk through a set of predefined test cases. Manually testing Gradle plugins usually requires publishing the binary artifact to a repository and consuming it from a build script.</p>
+<p>Probably the easiest way to test software is to manually exercise it. <strong>Manual testing</strong> can occur at any time and is not bound to writing automation code. However, manual testing is error-prone and cumbersome as it requires a human to walk through a set of predefined test cases. Manually testing Gradle plugins requires consuming the plugin binary in a build script.</p>
 </div>
 <div class="paragraph">
 <p>Other types of tests can be fully automated and exercised with every change to the source code. The testing pyramid introduced by Mike Cohen in his book <a href="https://www.mountaingoatsoftware.com/books/succeeding-with-agile-software-development-using-scrum">Succeeding with Agile: Software Development Using Scrum</a> describes three types of automated tests.</p>
@@ -167,7 +167,7 @@ BUILD SUCCESSFUL in 0s
 <p><strong>Unit testing</strong> aims to verify the smallest unit of code. In Java-based projects this unit is a method. Unit tests usually do not interact with other parts of the system e.g. a database or the file system. Interactions with other parts of the system are usually cut off with the help of Stubs or Mocks. You will find that POJOs and utility classes are good candidates for unit tests as they are self-contained and do not use the Gradle API.</p>
 </div>
 <div class="paragraph">
-<p><strong>Integration testing</strong> verifies that multiple classes or components work together as a whole. The code under test may reach out to external subsystems or use the Gradle API.</p>
+<p><strong>Integration testing</strong> verifies that multiple classes or components work together as a whole. The code under test may reach out to external subsystems.</p>
 </div>
 <div class="paragraph">
 <p><strong>Functional testing</strong> is used to test the system from the end user&#8217;s perspective. End-to-end tests for Gradle plugins stand up a build script, apply the plugin under test and execute the build with a specific task. The outcome of the build (e.g. standard output/error or generated artifacts) verifies the correctness of the functionality.</p>
@@ -200,7 +200,7 @@ BUILD SUCCESSFUL in 0s
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#integration-tests">Integration tests</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and <a href="https://docs.gradle.org/4.1/javadoc/org/gradle/testfixtures/ProjectBuilder.html">Gradle&#8217;s ProjectBuilder API</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#functional-tests">Functional tests</a></p></td>
@@ -215,26 +215,7 @@ BUILD SUCCESSFUL in 0s
 <h2 id="manual-tests"><a class="anchor" href="#manual-tests"></a>3. Setting up manual tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The typical way to manually test a Gradle plugin follows this workflow:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Make a change to the plugin code.</p>
-</li>
-<li>
-<p>Publish a new version of the plugin artifact to a local repository.</p>
-</li>
-<li>
-<p>Resolve the plugin from the repository and apply it to a sample project.</p>
-</li>
-<li>
-<p>Rinse and repeat.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Granted this technique is cumbersome - every change to the plugin code requires the developer to publish a new version of the artifact. With the introduction of the <a href="https://docs.gradle.org/4.1/userguide/composite_builds.html">composite builds</a> feature, plugin developers have a more convenient and powerful mechanism at their disposal. The standalone plugin project and the consuming project can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of re-publishing the binary file.</p>
+<p>The <a href="https://docs.gradle.org/4.1/userguide/composite_builds.html">composite builds</a> feature introduced in Gradle 3.1 makes it very easy to test a plugin manually. The standalone plugin project and the consuming project can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of re-publishing the binary file.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -283,24 +264,7 @@ BUILD SUCCESSFUL in 0s
 </div>
 </div>
 <div class="paragraph">
-<p>The execution of the project <code>include-plugin-build</code> in plain console mode clearly shows that the plugin project became part of a multi-project build.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="shell">$ gradle verifyUrl --console=plain
-
-:url-verifier-plugin:compileJava
-:url-verifier-plugin:compileGroovy NO-SOURCE
-:url-verifier-plugin:pluginDescriptors
-:url-verifier-plugin:processResources
-:url-verifier-plugin:classes
-:url-verifier-plugin:jar
-:verifyUrl
-Successfully resolved URL 'http://www.google.com/'
-
-BUILD SUCCESSFUL in 1s
-1 actionable task: 1 executed</code></pre>
-</div>
+<p>The command line output of task <code>verifyUrl</code> from the project <code>include-plugin-build</code> <a href="#verify-url-cmd-output">looks exactly the same as shown in the introduction</a> except that it now executed as part of a multi-project build.</p>
 </div>
 <div class="paragraph">
 <p>Manual testing has its place in the development process. By no means it is a replacement for automated testing. Next up, you&#8217;ll learn how to organize and implement automated tests for Gradle plugins.</p>
@@ -316,7 +280,7 @@ BUILD SUCCESSFUL in 1s
 <div class="sect2">
 <h3 id="organizing_test_source_code"><a class="anchor" href="#organizing_test_source_code"></a>4.1. Organizing test source code</h3>
 <div class="paragraph">
-<p>It is recommended to implement a good distribution of unit, integration and functional tests to cover the most important use cases. Separating the source code for each test type automatically results in a project that is more maintainable and manageable.</p>
+<p>We recommended to implement a good distribution of unit, integration and functional tests to cover the most important use cases. Separating the source code for each test type automatically results in a project that is more maintainable and manageable.</p>
 </div>
 <div class="paragraph">
 <p>By default the Java project already creates a convention for organizing unit tests, the directory <code>src/test/java</code>. Additionally, if you apply the Groovy plugin source code under the directory <code>src/test/groovy</code> is taken under consideration for compilation. Consequently, source code directories for other test types should follow a similar pattern. Below you can find an exemplary project layout for a plugin project that chooses to use a Groovy-based testing approach.</p>
@@ -373,13 +337,13 @@ The directories <code>src/integTest/groovy</code> and <code>src/functTest/groovy
 </table>
 </div>
 <div class="paragraph">
-<p>In the next section, you will learn how to configure those source directories for compilation and test execution.</p>
+<p>In the next section, you will learn how to configure those source directories for compilation and test execution. You can also rely on third-party plugins for convience e.g. the <a href="https://github.com/nebula-plugins/nebula-project-plugin#nebula-facet-plugin">Nebula Facet plugin</a> or the <a href="https://github.com/unbroken-dome/gradle-testsets-plugin">TestSets plugin</a>.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="modeling_test_types"><a class="anchor" href="#modeling_test_types"></a>4.2. Modeling test types</h3>
 <div class="paragraph">
-<p>Gradle models source code directories with the help of the <a href="https://docs.gradle.org/4.1/userguide/java_plugin.html#sec:working_with_java_source_sets">source set concept</a>. By pointing an instance of a source set to one or many source code directories, Gradle will automatically create a corresponding compilation task out-of-the-box. The following script plugin demonstrates the creation of a source set for integration tests.</p>
+<p>Gradle models source code directories with the help of the <a href="https://docs.gradle.org/4.1/userguide/java_plugin.html#sec:working_with_java_source_sets">source set concept</a>. By pointing an instance of a source set to one or many source code directories, <em>Gradle will automatically create a corresponding compilation task out-of-the-box</em>. The following script plugin demonstrates the creation of a source set for integration tests.</p>
 </div>
 <div class="listingblock">
 <div class="title">integration-test.gradle</div>
@@ -395,7 +359,7 @@ The directories <code>src/integTest/groovy</code> and <code>src/functTest/groovy
 </div>
 </div>
 <div class="paragraph">
-<p>Source sets are only responsible for compiling source code but do not deal with executing the byte code. For the purpose of test execution, a corresponding task of type <a href="https://docs.gradle.org/4.1/javadoc/org/gradle/api/tasks/testing/Test.html">Test</a> needs to be established. The following task demonstrate the setup for executing integration tests. As you can see below, the task references the classes and runtime classpath of the integration test source set.</p>
+<p>Source sets are only responsible for compiling source code, but do not deal with executing the byte code. For the purpose of test execution, a corresponding task of type <a href="https://docs.gradle.org/4.1/javadoc/org/gradle/api/tasks/testing/Test.html">Test</a> needs to be established. The following task demonstrate the setup for executing integration tests. As you can see below, the task references the classes and runtime classpath of the integration test source set.</p>
 </div>
 <div class="listingblock">
 <div class="title">integration-test.gradle</div>
@@ -520,16 +484,23 @@ Spock is a Groovy-based BDD test framework that even includes APIs for creating 
 }</code></pre>
 </div>
 </div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+When writing unit tests, it&#8217;s important to test boundary conditions and various forms of invalid input. Furthermore, try to extract as much logic as possible from classes that use the Gradle API to make it testable as unit tests. It will buy you the benefit of maintainable code and faster test execution.
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="integration-tests"><a class="anchor" href="#integration-tests"></a>5.2. Implementing integration tests</h3>
 <div class="paragraph">
-<p>Integration tests might or might not use the Gradle API. This section of the guide explains solutions for both situations.</p>
-</div>
-<div class="sect3">
-<h4 id="class_under_test_does_not_use_gradle_api"><a class="anchor" href="#class_under_test_does_not_use_gradle_api"></a>5.2.1. Class under test does not use Gradle API</h4>
-<div class="paragraph">
-<p>First, we&#8217;ll have a look at a class that reaches out to a another system, the piece of code that emits the HTTP calls. At the time of executing a test for the class <code>DefaultHttpCaller</code>, the runtime environment needs to be able to reach out to the internet.</p>
+<p>Let&#8217;s have a look at a class that reaches out to a another system, the piece of code that emits the HTTP calls. At the time of executing a test for the class <code>DefaultHttpCaller</code>, the runtime environment needs to be able to reach out to the internet.</p>
 </div>
 <div class="listingblock">
 <div class="title">DefaultHttpCaller.java</div>
@@ -592,156 +563,6 @@ Spock is a Groovy-based BDD test framework that even includes APIs for creating 
         t.cause <span class="keyword">instanceof</span> <span class="exception">UnknownHostException</span>
     }
 }</code></pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="class_under_test_uses_gradle_api"><a class="anchor" href="#class_under_test_uses_gradle_api"></a>5.2.2. Class under test uses Gradle API</h4>
-<div class="paragraph">
-<p>The task implementation responsible for verifying a URL is a more interesting example as it requires a dependency on the Gradle API.</p>
-</div>
-<div class="listingblock">
-<div class="title">UrlVerify.java</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="java"><span class="keyword">package</span> <span class="namespace">org.gradle.sample.tasks</span>;
-
-<span class="keyword">import</span> <span class="include">org.gradle.api.DefaultTask</span>;
-<span class="keyword">import</span> <span class="include">org.gradle.api.GradleException</span>;
-<span class="keyword">import</span> <span class="include">org.gradle.api.provider.PropertyState</span>;
-<span class="keyword">import</span> <span class="include">org.gradle.api.provider.Provider</span>;
-<span class="keyword">import</span> <span class="include">org.gradle.api.tasks.Input</span>;
-<span class="keyword">import</span> <span class="include">org.gradle.api.tasks.TaskAction</span>;
-<span class="keyword">import</span> <span class="include">org.gradle.sample.http.DefaultHttpCaller</span>;
-<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpCallException</span>;
-<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpCaller</span>;
-<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpResponse</span>;
-
-<span class="directive">public</span> <span class="type">class</span> <span class="class">UrlVerify</span> <span class="directive">extends</span> DefaultTask {
-    <span class="directive">private</span> HttpCaller httpCaller = <span class="keyword">new</span> DefaultHttpCaller();
-    <span class="directive">private</span> <span class="directive">final</span> PropertyState&lt;<span class="predefined-type">String</span>&gt; url;
-
-    <span class="directive">public</span> UrlVerify() {
-        <span class="local-variable">this</span>.url = getProject().property(<span class="predefined-type">String</span>.class);
-    }
-
-    <span class="directive">public</span> <span class="type">void</span> setUrl(<span class="predefined-type">String</span> url) {
-        <span class="local-variable">this</span>.url.set(url);
-    }
-
-    <span class="directive">public</span> <span class="type">void</span> setUrl(<span class="predefined-type">Provider</span>&lt;<span class="predefined-type">String</span>&gt; url) {
-        <span class="local-variable">this</span>.url.set(url);
-    }
-
-    <span class="annotation">@Input</span>
-    <span class="directive">public</span> <span class="predefined-type">String</span> getUrl() {
-        <span class="keyword">return</span> url.get();
-    }
-
-    <span class="annotation">@TaskAction</span>
-    <span class="directive">public</span> <span class="type">void</span> verify() {
-        <span class="keyword">try</span> {
-            HttpResponse httpResponse = httpCaller.get(getUrl());
-
-            <span class="keyword">if</span> (httpResponse.getCode() != <span class="integer">200</span>) {
-                <span class="keyword">throw</span> <span class="keyword">new</span> GradleException(<span class="predefined-type">String</span>.format(<span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to resolve url '%s' (%s)</span><span class="delimiter">&quot;</span></span>, getUrl(), httpResponse.toString()));
-            }
-        } <span class="keyword">catch</span> (HttpCallException e) {
-            <span class="keyword">throw</span> <span class="keyword">new</span> GradleException(<span class="predefined-type">String</span>.format(<span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to resolve url '%s'</span><span class="delimiter">&quot;</span></span>, getUrl(), e));
-        }
-
-        getLogger().quiet(<span class="predefined-type">String</span>.format(<span class="string"><span class="delimiter">&quot;</span><span class="content">Successfully resolved URL '%s'</span><span class="delimiter">&quot;</span></span>, getUrl()));
-    }
-
-    <span class="type">void</span> setHttpCaller(HttpCaller httpCaller) {
-        <span class="local-variable">this</span>.httpCaller = httpCaller;
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Creating a task in an integration test requires a reference to the <code>Project</code> instance. To be able to use the <code>ProjectBuilder</code> API the test setup needs to declare a reference to the Gradle API.</p>
-</div>
-<div class="listingblock">
-<div class="title">integration-test.gradle</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="groovy">dependencies {
-    integrationTestCompile gradleApi()
-}</code></pre>
-</div>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-The created <code>Project</code> instance acts as a stand-in object that <em>almost</em> behaves like a real instance. There are certain limitations for this <code>Project</code> instance e.g. it doesn&#8217;t automatically invoke project lifecycle hooks like <code>afterEvaluate</code>. If you happen to run into those limitations then writing a <a href="#functional-tests">functional test</a> is likely the better option. In the long run, <code>ProjectBuilder</code> might become a more powerful API.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>The following integration test demonstrates the use of <code>ProjectBuilder</code>. The <code>setup</code> method first creates a <code>Project</code> instance. From the <code>Project</code>, the test creates a task of type <code>UrlVerify</code>. Any HTTP communication has been mocked. All test cases can solely concentrate on verifying the correct behavior of the task implementation.</p>
-</div>
-<div class="listingblock">
-<div class="title">UrlVerifyIntegrationTest.groovy</div>
-<div class="content">
-<pre class="CodeRay highlight"><code data-lang="groovy"><span class="keyword">package</span> org.gradle.sample.tasks
-
-<span class="keyword">import</span> <span class="include">org.gradle.api.GradleException</span>
-<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpCallException</span>
-<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpCaller</span>
-<span class="keyword">import</span> <span class="include">org.gradle.sample.http.HttpResponse</span>
-<span class="keyword">import</span> <span class="include">org.gradle.testfixtures.ProjectBuilder</span>
-<span class="keyword">import</span> <span class="include">org.junit.Rule</span>
-<span class="keyword">import</span> <span class="include">org.junit.rules.TemporaryFolder</span>
-<span class="keyword">import</span> <span class="include">spock.lang.Specification</span>
-<span class="keyword">import</span> <span class="include">spock.lang.Subject</span>
-
-<span class="type">class</span> <span class="class">UrlVerifyIntegrationTest</span> <span class="directive">extends</span> Specification {
-    <span class="directive">private</span> <span class="directive">static</span> <span class="directive">final</span> <span class="predefined-type">String</span> EXAMPLE_URL = <span class="string"><span class="delimiter">'</span><span class="content">http://www.google.com/</span><span class="delimiter">'</span></span>
-
-    <span class="annotation">@Rule</span> TemporaryFolder temporaryFolder = <span class="keyword">new</span> TemporaryFolder()
-    <span class="annotation">@Subject</span> UrlVerify verifyUrlTask
-    <span class="keyword">def</span> httpCaller = Mock(HttpCaller)
-
-    <span class="keyword">def</span> <span class="function">setup</span>() {
-        <span class="keyword">def</span> project = ProjectBuilder.builder().withProjectDir(temporaryFolder.root).build()
-        verifyUrlTask = project.tasks.create(<span class="string"><span class="delimiter">'</span><span class="content">verifyUrl</span><span class="delimiter">'</span></span>, UrlVerify)
-        verifyUrlTask.httpCaller = httpCaller
-        verifyUrlTask.url = EXAMPLE_URL
-    }
-
-    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">can successfully resolve URL</span><span class="delimiter">&quot;</span></span>() {
-        <span class="key">when</span>:
-        verifyUrlTask.verify()
-
-        <span class="key">then</span>:
-        <span class="integer">1</span> * httpCaller.get(EXAMPLE_URL) &gt;&gt; <span class="keyword">new</span> HttpResponse(<span class="integer">200</span>, <span class="string"><span class="delimiter">'</span><span class="content">OK</span><span class="delimiter">'</span></span>)
-    }
-
-    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">throws exception when resolving URL for status code other than 200</span><span class="delimiter">&quot;</span></span>() {
-        <span class="key">when</span>:
-        verifyUrlTask.verify()
-
-        <span class="key">then</span>:
-        <span class="integer">1</span> * httpCaller.get(EXAMPLE_URL) &gt;&gt; <span class="keyword">new</span> HttpResponse(<span class="integer">500</span>, <span class="string"><span class="delimiter">'</span><span class="content">Internal Server Error</span><span class="delimiter">'</span></span>)
-        <span class="keyword">def</span> t = thrown(GradleException)
-        t.message == <span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to resolve url 'http://www.google.com/' (HTTP 500, Reason: Internal Server Error)</span><span class="delimiter">&quot;</span></span>
-    }
-
-    <span class="keyword">def</span> <span class="string"><span class="delimiter">&quot;</span><span class="content">rethrows exception when failing to resolve URL</span><span class="delimiter">&quot;</span></span>() {
-        <span class="key">when</span>:
-        verifyUrlTask.verify()
-
-        <span class="key">then</span>:
-        <span class="integer">1</span> * httpCaller.get(EXAMPLE_URL) &gt;&gt; { <span class="keyword">throw</span> <span class="keyword">new</span> HttpCallException(<span class="string"><span class="delimiter">'</span><span class="content">unknown host</span><span class="delimiter">'</span></span>) }
-        <span class="keyword">def</span> t = thrown(GradleException)
-        t.message == <span class="string"><span class="delimiter">&quot;</span><span class="content">Failed to resolve url 'http://www.google.com/'</span><span class="delimiter">&quot;</span></span>
-    }
-}</code></pre>
-</div>
 </div>
 </div>
 </div>
@@ -832,14 +653,11 @@ The created <code>Project</code> instance acts as a stand-in object that <em>alm
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="summary"><a class="anchor" href="#summary"></a>6. Summary</h2>
+<div class="sect1 contribute">
+<h2 id="help_improve_this_guide"><a class="anchor" href="#help_improve_this_guide"></a>6. Help improve this guide</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Please let us know on the <a href="https://discuss.gradle.org/">Gradle forum</a> if you are still having difficulties understanding any of the covered testing strategies. Which one works the best for your plugin? Let us know!</p>
-</div>
-<div class="paragraph">
-<p>Wrote an awesome plugin? Write a tweet to <a href="https://twitter.com/gradle">@gradle</a> with the link to the documentation or code.</p>
+<p>Have feedback or a question? Found a typo? Like all Gradle guides, help is just a GitHub issue away. Please add an issue or pull request to <a href="https://github.com/gradle-guides/testing-gradle-plugins/">gradle-guides/testing-gradle-plugins</a> and we&#8217;ll get back to you.</p>
 </div>
 </div>
 </div>
@@ -857,6 +675,9 @@ The created <code>Project</code> instance acts as a stand-in object that <em>alm
 <li>
 <p><a href="https://guides.gradle.org/implementing-gradle-plugins/">Implementing Gradle plugins</a></p>
 </li>
+<li>
+<p><a href="https://guides.gradle.org/publishing-plugins-to-gradle-plugin-portal/">Publishing Plugins to Gradle Plugin Portal</a></p>
+</li>
 </ul>
 </div>
 </div>
@@ -864,7 +685,7 @@ The created <code>Project</code> instance acts as a stand-in object that <em>alm
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-08-15 16:55:49 +00:00
+Last updated 2017-08-18 12:28:48 +00:00
 </div>
 </div>
 </body>

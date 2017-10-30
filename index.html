@@ -90,7 +90,7 @@
 </ul>
 </div>
 <div class="paragraph">
-<p>If you happen to be a beginner to Gradle please start by working through the <a href="https://gradle.org/guides#getting-started">Getting Started Guides on Gradle development</a> first while referencing the <a href="https://docs.gradle.org/4.2/userguide/userguide.html">Gradle User Manual</a> to go deeper.</p>
+<p>If you happen to be a beginner to Gradle please start by working through the <a href="https://gradle.org/guides#getting-started">Getting Started Guides on Gradle development</a> first while referencing the <a href="https://docs.gradle.org/4.3/userguide/userguide.html">Gradle User Manual</a> to go deeper.</p>
 </div>
 </div>
 </div>
@@ -192,7 +192,7 @@ BUILD SUCCESSFUL in 0s
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#manual-tests">Manual tests</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.gradle.org/4.2/userguide/composite_builds.html">Gradle composite builds</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://docs.gradle.org/4.3/userguide/composite_builds.html">Gradle composite builds</a></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#unit-tests">Unit tests</a></p></td>
@@ -204,7 +204,7 @@ BUILD SUCCESSFUL in 0s
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#functional-tests">Functional tests</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and <a href="https://docs.gradle.org/4.2/userguide/test_kit.html">Gradle TestKit</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Any JVM-based test framework and <a href="https://docs.gradle.org/4.3/userguide/test_kit.html">Gradle TestKit</a></p></td>
 </tr>
 </tbody>
 </table>
@@ -215,7 +215,7 @@ BUILD SUCCESSFUL in 0s
 <h2 id="manual-tests"><a class="anchor" href="#manual-tests"></a>3. Setting up manual tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <a href="https://docs.gradle.org/4.2/userguide/composite_builds.html">composite builds</a> feature introduced in Gradle 3.1 makes it very easy to test a plugin manually. The standalone plugin project and the consuming project can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of re-publishing the binary file.</p>
+<p>The <a href="https://docs.gradle.org/4.3/userguide/composite_builds.html">composite builds</a> feature introduced in Gradle 3.1 makes it very easy to test a plugin manually. The standalone plugin project and the consuming project can be combined together into a single unit making it much more straight forward to try out or debug changes without the hassle of re-publishing the binary file.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -343,7 +343,7 @@ The directories <code>src/integTest/groovy</code> and <code>src/functTest/groovy
 <div class="sect2">
 <h3 id="modeling_test_types"><a class="anchor" href="#modeling_test_types"></a>4.2. Modeling test types</h3>
 <div class="paragraph">
-<p>Gradle models source code directories with the help of the <a href="https://docs.gradle.org/4.2/userguide/java_plugin.html#sec:working_with_java_source_sets">source set concept</a>. By pointing an instance of a source set to one or many source code directories, <em>Gradle will automatically create a corresponding compilation task out-of-the-box</em>. The following script plugin demonstrates the creation of a source set for integration tests.</p>
+<p>Gradle models source code directories with the help of the <a href="https://docs.gradle.org/4.3/userguide/java_plugin.html#sec:working_with_java_source_sets">source set concept</a>. By pointing an instance of a source set to one or many source code directories, <em>Gradle will automatically create a corresponding compilation task out-of-the-box</em>. The following script plugin demonstrates the creation of a source set for integration tests.</p>
 </div>
 <div class="listingblock">
 <div class="title">integration-test.gradle</div>
@@ -359,7 +359,7 @@ The directories <code>src/integTest/groovy</code> and <code>src/functTest/groovy
 </div>
 </div>
 <div class="paragraph">
-<p>Source sets are only responsible for compiling source code, but do not deal with executing the byte code. For the purpose of test execution, a corresponding task of type <a href="https://docs.gradle.org/4.2/javadoc/org/gradle/api/tasks/testing/Test.html">Test</a> needs to be established. The following task demonstrate the setup for executing integration tests. As you can see below, the task references the classes and runtime classpath of the integration test source set.</p>
+<p>Source sets are only responsible for compiling source code, but do not deal with executing the byte code. For the purpose of test execution, a corresponding task of type <a href="https://docs.gradle.org/4.3/javadoc/org/gradle/api/tasks/testing/Test.html">Test</a> needs to be established. The following task demonstrate the setup for executing integration tests. As you can see below, the task references the classes and runtime classpath of the integration test source set.</p>
 </div>
 <div class="listingblock">
 <div class="title">integration-test.gradle</div>
@@ -591,7 +591,7 @@ When writing unit tests, it&#8217;s important to test boundary conditions and va
 </div>
 </div>
 <div class="paragraph">
-<p>Every Gradle plugin project should apply the <a href="https://docs.gradle.org/4.2/userguide/javaGradle_plugin.html">plugin development plugin</a> to reduce boilerplate code. By applying the plugin development plugin, the project is preconfigured for the use of TestKit. Let&#8217;s point the plugin to the custom source set containing functional tests.</p>
+<p>Every Gradle plugin project should apply the <a href="https://docs.gradle.org/4.3/userguide/javaGradle_plugin.html">plugin development plugin</a> to reduce boilerplate code. By applying the plugin development plugin, the project is preconfigured for the use of TestKit. Let&#8217;s point the plugin to the custom source set containing functional tests.</p>
 </div>
 <div class="listingblock">
 <div class="title">functional-test.gradle</div>
@@ -602,7 +602,7 @@ When writing unit tests, it&#8217;s important to test boundary conditions and va
 </div>
 </div>
 <div class="paragraph">
-<p>Functional tests for Gradle plugins use a instance of <code>GradleRunner</code> to execute the build under test. <code>GradleRunner</code> is an API provided by TestKit which internally uses the Tooling API to execute the build. The following example applies the plugin to the build script under test, configures the extension and executes the build with the task <code>verifyUrl</code>. Please see the <a href="https://docs.gradle.org/4.2/userguide/test_kit.html">TestKit documentation</a> to get more familiar with the functionality of TestKit.</p>
+<p>Functional tests for Gradle plugins use a instance of <code>GradleRunner</code> to execute the build under test. <code>GradleRunner</code> is an API provided by TestKit which internally uses the Tooling API to execute the build. The following example applies the plugin to the build script under test, configures the extension and executes the build with the task <code>verifyUrl</code>. Please see the <a href="https://docs.gradle.org/4.3/userguide/test_kit.html">TestKit documentation</a> to get more familiar with the functionality of TestKit.</p>
 </div>
 <div class="listingblock">
 <div class="title">UrlVerifierPluginFunctionalTest.groovy</div>
@@ -685,7 +685,7 @@ When writing unit tests, it&#8217;s important to test boundary conditions and va
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-10-19 16:51:11 +00:00
+Last updated 2017-10-30 18:26:57 +00:00
 </div>
 </div>
 </body>

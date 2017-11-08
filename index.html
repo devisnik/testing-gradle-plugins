@@ -650,6 +650,20 @@ When writing unit tests, it&#8217;s important to test boundary conditions and va
 }</code></pre>
 </div>
 </div>
+<div class="sect3">
+<h4 id="ide_integration"><a class="anchor" href="#ide_integration"></a>5.3.1. IDE integration</h4>
+<div class="paragraph">
+<p>TestKit determines the plugin classpath by running a specific Gradle task. You will need to execute the <code>assemble</code> task to initially generate the plugin classpath or to reflect changes to it even when running TestKit-based functional tests from the IDE.</p>
+</div>
+<div class="paragraph">
+<p>Some IDEs provide a convenience option to delegate the "test classpath generation and execution" to the build. In IntelliJ you can find this option under <em>Preferences&#8230;&#8203; &gt; Build, Execution, Deployment &gt; Build Tools &gt; Gradle &gt; Runner &gt; Delegate IDE build/run actions to gradle</em>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/intellij-delegate-to-build.png" alt="intellij delegate to build">
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -685,7 +699,7 @@ When writing unit tests, it&#8217;s important to test boundary conditions and va
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-10-30 18:26:57 +00:00
+Last updated 2017-11-08 16:42:19 +00:00
 </div>
 </div>
 </body>
